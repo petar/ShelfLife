@@ -1,0 +1,6 @@
+
+Prerequisites:
+
+(*) The SHELFLIFE environment variable points to this directory
+
+(*) The MongoDB bin directory is in the PATH environment variable
