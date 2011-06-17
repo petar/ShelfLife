@@ -12,7 +12,7 @@ import (
 	"github.com/petar/GoHTTP/server"
 	"github.com/petar/GoHTTP/server/subs"
 
-	"github.com/petar/ShelfLife/api"
+	"github.com/petar/ShelfLife/social"
 )
 
 var (

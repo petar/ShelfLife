@@ -1,6 +1,6 @@
 include $(GOROOT)/src/Make.inc
 
-TARG=github.com/petar/ShelfLife/api
+TARG=github.com/petar/ShelfLife/social
 GOFILES=\
 	api.go\
 
