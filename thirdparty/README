@@ -1,0 +1,10 @@
+
+// Database drivers
+https://launchpad.net/gobson/bson
+https://launchpad.net/mgo
+
+// Debugging & profiling instrumentation
+https://github.com/petar/GoGauge
+
+// HTTP infrastructure
+https://github.com/petar/GoHTTP
