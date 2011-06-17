@@ -13,6 +13,7 @@ QUOTED_GOBIN=$(subst $(space),\ ,$(GOBIN))
 all: install
 
 DIRS=\
+	pkg/db\
 	pkg/social\
 	cmd/server\
 
