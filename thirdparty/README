@@ -1,4 +1,25 @@
 
+
+RELATIONSHIP WITH EXTERNAL PROJECTS
+===================================
+
+This file documents what external projects are being used in ShelfLife.
+
+It is imperative that the release (ideally all) versions of the project
+document which versions of the included projects are used in a working
+version of this project, so that the binaries can always be reproduced.
+
+Eventually, we'll actually fetch our own copies of all included projects
+into this directory (and update them as necessary).
+
+The Go Language version MUST also be documented below.
+
+
+LIST OF EXTERNAL PROJECT DEPENDENCIES
+=====================================
+
+// Go Language
+
 // Database drivers
 https://launchpad.net/gobson/bson
 https://launchpad.net/mgo
@@ -8,3 +29,4 @@ https://github.com/petar/GoGauge
 
 // HTTP infrastructure
 https://github.com/petar/GoHTTP
+https://github.com/dchest/authcookie

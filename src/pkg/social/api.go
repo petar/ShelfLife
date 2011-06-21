@@ -6,6 +6,7 @@ package social
 
 import (
 	"os"
+	"github.com/petar/GoHTTP/server/rpc"
 )
 
 type API struct {
@@ -14,13 +15,12 @@ type API struct {
 
 func NewAPI() *API { return &API{} }
 
-type Empty struct {}
-
-func (a *API) Ping(args *Empty, r *Empty) os.Error {
+func (a *API) Ping(args *rpc.NoArgs, r *rpc.NoRet) os.Error {
 	return nil
 }
 
-func (a *API) HelloWorld(args *Empty, r *string) os.Error {
-	*r = "Hello world!"
+func (a *API) HelloWorld(args *rpc.NoArgs, r *rpc.ShortRet) os.Error {
+	r.Value = make(map[string]string)
+	r.Value["Hello"] = "World"
 	return nil
 }
