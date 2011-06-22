@@ -7,7 +7,7 @@ package db
 import (
 	"log"
 	"os"
-	//"launchpad.net/gobson"
+	gobson "launchpad.net/gobson"
 	"launchpad.net/mgo"
 )
 
@@ -34,26 +34,47 @@ func NewDb(addr string) (db *Db, err os.Error) {
 	}, nil
 }
 
-/*
-func (db *Db) AddUser(u *User) os.Error {
-	return db.c.Insert(u)
+type User struct {
+	Login        string
+	Email        string
+	HashPassword string
 }
 
-// Non-nil error indicates a connectivity problem. A missing user
-// returns u == nil and err == nil.
+func (db *Db) AddUser(u *User) os.Error {
+	return db.u.Insert(u)
+}
+
+// UserByEmail looks up a user record with the given email.
+// A non-nil error indicates a connectivity problem. 
+// A missing user returns u == nil and err == nil.
 func (db *Db) UserByEmail(email string) (u *User, err os.Error) {
 	u = &User{}
-	err = db.c.Find(gobson.M{"Email": email}).One(u)
+	err = db.u.Find(gobson.M{ "Email": email }).One(u)
 	if err == mgo.NotFound {
 		return nil, nil
 	}
 	if err != nil {
-		log.Printf("DB err: %s\n", err)
+		log.Printf("MongoDB error: %s\n", err)
 		u = nil
 	}
 	return u, err
 }
-*/
+
+// UserByLogin looks up a user record with the given login (i.e. username).
+// A non-nil error indicates a connectivity problem. 
+// A missing user returns u == nil and err == nil.
+func (db *Db) UserByLogin(login string) (u *User, err os.Error) {
+	u = &User{}
+	err = db.u.Find(gobson.M{ "Login": login }).One(u)
+	if err == mgo.NotFound {
+		return nil, nil
+	}
+	if err != nil {
+		log.Printf("MongoDB error: %s\n", err)
+		u = nil
+	}
+	return u, err
+}
 
 func (db *Db) Close() os.Error {
 	db.s.Close()
