@@ -7,13 +7,16 @@ package social
 import (
 	"os"
 	"github.com/petar/GoHTTP/server/rpc"
+	"github.com/petar/ShelfLife/db"
 )
 
 type API struct {
-	//db *Db
+	db *db.Db
 }
 
-func NewAPI() *API { return &API{} }
+func NewAPI(db *db.Db) *API { 
+	return &API{ db: db } 
+}
 
 func (a *API) Ping(args *rpc.NoArgs, r *rpc.NoRet) os.Error {
 	return nil
