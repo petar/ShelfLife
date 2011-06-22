@@ -6,5 +6,6 @@ GOFILES=\
 	err.go\
 	login.go\
 	pass.go\
+	sanitize.go\
 
 include $(GOROOT)/src/Make.pkg

@@ -12,6 +12,7 @@ import (
 )
 
 type User struct {
+	Name         string
 	Login        string
 	Email        string
 	HashPassword string
