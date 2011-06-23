@@ -27,7 +27,7 @@ func (db *Db) AddUser(u *User) os.Error {
 // A missing user returns u == nil and err == nil.
 func (db *Db) FindUserByEmail(email string) (u *User, err os.Error) {
 	u = &User{}
-	err = db.u.Find(gobson.M{ "Email": email }).One(u)
+	err = db.u.Find(gobson.M{ "email": email }).One(u)
 	if err == mgo.NotFound {
 		return nil, nil
 	}
@@ -43,7 +43,7 @@ func (db *Db) FindUserByEmail(email string) (u *User, err os.Error) {
 // A missing user returns u == nil and err == nil.
 func (db *Db) FindUserByLogin(login string) (u *User, err os.Error) {
 	u = &User{}
-	err = db.u.Find(gobson.M{ "Login": login }).One(u)
+	err = db.u.Find(gobson.M{ "login": login }).One(u)
 	if err == mgo.NotFound {
 		return nil, nil
 	}

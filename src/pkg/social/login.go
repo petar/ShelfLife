@@ -16,7 +16,6 @@ import (
 // Args:
 //   "Login" string
 //   "HPass" string = HMAC-hashed password
-// Ret: n/a
 // Err:
 //   ErrApp:  If the sign-in information is incorrect
 //   non-nil: If a technical problem occured
@@ -84,11 +83,38 @@ func (a *API) verifySignInCookie(cookie *http.Cookie) (user *db.User, err os.Err
 	return user, nil
 }
 
+func (a *API) whoAmI(args *rpc.Args) (user *db.User, err os.Error) {
+	for _, cookie := range args.Cookies {
+		user, err = a.verifySignInCookie(cookie)
+		if err != nil {
+			return nil, err
+		}
+		if user != nil {
+			return user, nil
+		}
+	}
+	return nil, nil
+}
+
+// WhoAmI returns the login of the currently signed user
+func (a *API) WhoAmI(args *rpc.Args, r *rpc.Ret) (err os.Error) {
+	user, err := a.whoAmI(args)
+	if err != nil {
+		return err
+	}
+	login := ""
+	if user != nil {
+		login = user.Login
+	}
+	r.SetString("Login", login)
+
+	return nil
+}
+
 // RPC/SignInEmail logs in a user, specified by their email
 // Args:
 //   "Email" string
 //   "HPass" string = HMAC-hashed password
-// Ret: n/a
 // Err:
 //   ErrApp:  If the sign-in information is incorrect
 //   non-nil: If a technical problem occured
@@ -128,7 +154,6 @@ func (a *API) SignInEmail(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 //   "Email" string
 //   "Login" string
 //   "HPass" string = HMAC-hashed password
-// Ret: n/a
 // Err:
 //   ErrApp:  If the application logic prohibits this registration
 //   non-nil: If a technical problem occured
@@ -168,9 +193,9 @@ func (a *API) SignUp(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 
 	// Add the user
 	u = &db.User{
-		Name: name,
-		Login: login,
-		Email: email,
+		Name:         name,
+		Login:        login,
+		Email:        email,
 		HashPassword: hpass,
 	}
 	if err = a.db.AddUser(u); err != nil {
