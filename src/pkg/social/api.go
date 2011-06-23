@@ -22,12 +22,11 @@ func NewAPI(db *db.Db, loginSecret []byte) *API {
 	} 
 }
 
-func (a *API) Ping(args *rpc.NoArgs, r *rpc.NoRet) os.Error {
+func (a *API) Ping(args *rpc.Args, r *rpc.Ret) os.Error {
 	return nil
 }
 
-func (a *API) HelloWorld(args *rpc.NoArgs, r *rpc.ShortRet) os.Error {
-	r.Value = make(map[string]string)
-	r.Value["Hello"] = "World"
+func (a *API) HelloWorld(args *rpc.Args, r *rpc.Ret) os.Error {
+	r.SetString("Hello", "World")
 	return nil
 }

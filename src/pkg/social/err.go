@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	ErrArgs = os.NewError("bad or missing RPC call arguments")
-	ErrDb   = os.NewError("database error")
-	ErrApp  = os.NewError("operation denied by app")
-	ErrSec  = os.NewError("operation denied for security reasons")
+	ErrParse = os.NewError("bad or missing RPC call arguments")
+	ErrDb    = os.NewError("database error")
+	ErrApp   = os.NewError("operation denied by app")
+	ErrSec   = os.NewError("operation denied for security reasons")
 )

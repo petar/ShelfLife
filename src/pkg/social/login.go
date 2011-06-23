@@ -6,9 +6,10 @@ package social
 
 import (
 	"os"
-	"time"
 	"github.com/dchest/authcookie"
+	"github.com/petar/GoHTTP/http"
 	"github.com/petar/GoHTTP/server/rpc"
+	"github.com/petar/ShelfLife/db"
 )
 
 // RPC/SignInLogin logs in a user, specified by their login (aka username)
@@ -20,7 +21,7 @@ import (
 //   ErrApp:  If the sign-in information is incorrect
 //   non-nil: If a technical problem occured
 //
-func (a *API) SignInLogin(args *rpc.Args, r *rpc.Ret) os.Error {
+func (a *API) SignInLogin(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	
 	// Validate and sanitize arguments
 	login, _ := args.String("Login")
@@ -44,7 +45,7 @@ func (a *API) SignInLogin(args *rpc.Args, r *rpc.Ret) os.Error {
 	}
 
 	// Set authentication cookie
-	r.AddSetCookie(newSignInCookie(u))
+	r.AddSetCookie(a.newSignInCookie(u))
 
 	return nil
 }
@@ -60,7 +61,7 @@ func (a *API) newSignInCookie(u *db.User) *http.Cookie {
 	duration := OneWeekInSec
 	return &http.Cookie{
 		Name:   "Login",
-		Value:  authcookie.NewSinceNow(u.Login, duration, a.loginSecret),
+		Value:  authcookie.NewSinceNow(u.Login, int64(duration), a.loginSecret),
 		MaxAge: duration,
 	}
 }
@@ -68,8 +69,19 @@ func (a *API) newSignInCookie(u *db.User) *http.Cookie {
 // verifySignInCookie checks that cookie is a valid authentication cookie,
 // and if so returns the user who is logged in with this cookie, or nil otherwise.
 // A non-nil error indicates a technical problem.
-func (a *API) verifySignInCookie(cookie *Cookie) (user *db.User, err os.Error) {
-	?
+func (a *API) verifySignInCookie(cookie *http.Cookie) (user *db.User, err os.Error) {
+	if cookie == nil || cookie.Name != "Login" {
+		return nil, nil
+	}
+	login := authcookie.Login(cookie.Value, a.loginSecret)
+	if login, err = SanitizeLogin(login); err != nil {
+		return nil, nil
+	}
+	user, err = a.db.FindUserByLogin(login)
+	if err != nil {
+		return nil, ErrDb
+	}
+	return user, nil
 }
 
 // RPC/SignInEmail logs in a user, specified by their email
@@ -81,11 +93,11 @@ func (a *API) verifySignInCookie(cookie *Cookie) (user *db.User, err os.Error) {
 //   ErrApp:  If the sign-in information is incorrect
 //   non-nil: If a technical problem occured
 //
-func (a *API) SignInEmail(args *rpc.Args, r *rpc.Ret) os.Error {
+func (a *API) SignInEmail(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	
 	// Validate and sanitize arguments
 	email, _ := args.String("Email")
-	if login, err = SanitizeEmail(email); err != nil {
+	if email, err = SanitizeEmail(email); err != nil {
 		return ErrApp
 	}
 	hpass, _ := args.String("HPass")
@@ -105,7 +117,7 @@ func (a *API) SignInEmail(args *rpc.Args, r *rpc.Ret) os.Error {
 	}
 
 	// Set authentication cookie
-	r.AddSetCookie(newSignInCookie(u))
+	r.AddSetCookie(a.newSignInCookie(u))
 
 	return nil
 }
@@ -177,11 +189,11 @@ func (a *API) SignUp(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 //   non-nil: If a technical problem occured
 //
 func (a *API) HaveLogin(args *rpc.Args, r *rpc.Ret) os.Error {
-	login, err := args.Bool("Login")
+	login, err := args.String("Login")
 	if err != nil {
 		return err
 	}
-	if !IsValidLogin(login) {
+	if login, err = SanitizeLogin(login); err != nil {
 		r.SetBool("Have", false)
 		return nil
 	}
