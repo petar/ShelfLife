@@ -6,6 +6,7 @@ package social
 
 import (
 	"os"
+	"time"
 	"github.com/dchest/authcookie"
 	"github.com/petar/GoHTTP/server/rpc"
 )
@@ -43,9 +44,32 @@ func (a *API) SignInLogin(args *rpc.Args, r *rpc.Ret) os.Error {
 	}
 
 	// Set authentication cookie
-	r.AddCookie(?)
+	r.AddSetCookie(newSignInCookie(u))
 
 	return nil
+}
+
+const (
+	OneDayInSec  = 60*60*24
+	OneWeekInSec = OneDayInSec*7
+)
+
+// newSignInCookie returns a new cookie authenticating that the given 
+// user is signed in
+func (a *API) newSignInCookie(u *db.User) *http.Cookie {
+	duration := OneWeekInSec
+	return &http.Cookie{
+		Name:   "Login",
+		Value:  authcookie.NewSinceNow(u.Login, duration, a.loginSecret),
+		MaxAge: duration,
+	}
+}
+
+// verifySignInCookie checks that cookie is a valid authentication cookie,
+// and if so returns the user who is logged in with this cookie, or nil otherwise.
+// A non-nil error indicates a technical problem.
+func (a *API) verifySignInCookie(cookie *Cookie) (user *db.User, err os.Error) {
+	?
 }
 
 // RPC/SignInEmail logs in a user, specified by their email
@@ -58,7 +82,31 @@ func (a *API) SignInLogin(args *rpc.Args, r *rpc.Ret) os.Error {
 //   non-nil: If a technical problem occured
 //
 func (a *API) SignInEmail(args *rpc.Args, r *rpc.Ret) os.Error {
-	?
+	
+	// Validate and sanitize arguments
+	email, _ := args.String("Email")
+	if login, err = SanitizeEmail(email); err != nil {
+		return ErrApp
+	}
+	hpass, _ := args.String("HPass")
+
+	// Fetch user for this login
+	u, err := a.db.FindUserByEmail(email)
+	if err != nil {
+		return ErrDb
+	}
+	if u == nil {
+		return ErrApp
+	}
+
+	// Verify credentials
+	if !VerifyPassword(hpass, u.HashPassword) {
+		return ErrSec
+	}
+
+	// Set authentication cookie
+	r.AddSetCookie(newSignInCookie(u))
+
 	return nil
 }
 
@@ -134,20 +182,13 @@ func (a *API) HaveLogin(args *rpc.Args, r *rpc.Ret) os.Error {
 		return err
 	}
 	if !IsValidLogin(login) {
-		r.Bool("Have", false)
+		r.SetBool("Have", false)
 		return nil
 	}
 	u, err := a.db.FindUserByLogin(login)
 	if err != nil {
 		return ErrDb
 	}
-	r.Bool("Have", u != nil)
+	r.SetBool("Have", u != nil)
 	return nil
-}
-
-// If cookie is a valid authentication cookie, getCookieCredentials returns the user
-// who is logged in with this cookie and nil otherwise. 
-// A non-nil error indicates a technical problem.
-func (a *API) getCookieCredentials(cookie *Cookie) (user *db.User, err os.Error) {
-	?
 }

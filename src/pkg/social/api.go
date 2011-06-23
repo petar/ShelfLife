@@ -11,11 +11,15 @@ import (
 )
 
 type API struct {
-	db *db.Db
+	db          *db.Db
+	loginSecret []byte
 }
 
-func NewAPI(db *db.Db) *API { 
-	return &API{ db: db } 
+func NewAPI(db *db.Db, loginSecret []byte) *API { 
+	return &API{ 
+		db:          db, 
+		loginSecret: loginSecret,
+	} 
 }
 
 func (a *API) Ping(args *rpc.NoArgs, r *rpc.NoRet) os.Error {
