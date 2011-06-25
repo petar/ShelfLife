@@ -17,6 +17,9 @@ type Db struct {
 
 	// Users collection
 	u mgo.Collection
+
+	// Follow collection
+	f mgo.Collection
 }
 
 // NewDb creates a new Db interface to the database.
@@ -30,6 +33,7 @@ func NewDb(addr string) (db *Db, err os.Error) {
 	return &Db{ 
 		s: s,
 		u: s.DB("shelflife").C("users"),
+		f: s.DB("shelflife").C("follow"),
 	}, nil
 }
 

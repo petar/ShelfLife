@@ -20,6 +20,8 @@ _testmain.go
 panic
 src/cmd/server/shelf-server
 
+.bzr
+
 syntax:regexp
 ^pkg/
 ^src/cmd/(.*)/6?\1$
