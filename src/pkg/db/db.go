@@ -7,7 +7,7 @@ package db
 import (
 	"log"
 	"os"
-	"launchpad.net/mgo"
+	"github.com/petar/ShelfLife/thirdparty/mgo"
 )
 
 // Db encapsulates all interaction with the database

@@ -7,8 +7,8 @@ package db
 import (
 	"log"
 	"os"
-	gobson "launchpad.net/gobson"
-	"launchpad.net/mgo"
+	"github.com/petar/ShelfLife/thirdparty/bson"
+	"github.com/petar/ShelfLife/thirdparty/mgo"
 )
 
 type User struct {

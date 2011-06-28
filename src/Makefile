@@ -13,8 +13,10 @@ QUOTED_GOBIN=$(subst $(space),\ ,$(GOBIN))
 all: install
 
 DIRS=\
+	thirdparty/gobson-bzr\
+	thirdparty/mgo-bzr\
 	pkg/db\
-	pkg/social\
+	pkg/sociability\
 	cmd/server\
 
 TEST=\
