@@ -442,7 +442,7 @@ func getStructFields(st reflect.Type) (*structFields, os.Error) {
 
 		info := fieldInfo{Num: i}
 
-		if s := strings.LastIndex(field.Tag, "/"); s != -1 {
+		if s := strings.LastIndex(string(field.Tag), "/"); s != -1 {
 			for _, c := range field.Tag[s+1:] {
 				switch c {
 				case int('c'):
@@ -457,7 +457,7 @@ func getStructFields(st reflect.Type) (*structFields, os.Error) {
 		}
 
 		if field.Tag != "" {
-			info.Key = field.Tag
+			info.Key = string(field.Tag)
 		} else {
 			info.Key = strings.ToLower(field.Name)
 		}

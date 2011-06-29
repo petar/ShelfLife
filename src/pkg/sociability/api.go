@@ -27,6 +27,6 @@ func (a *API) Ping(args *rpc.Args, r *rpc.Ret) os.Error {
 }
 
 func (a *API) HelloWorld(args *rpc.Args, r *rpc.Ret) os.Error {
-	r.SetString("Hello", "World")
+	r.SetString("hello", "world")
 	return nil
 }

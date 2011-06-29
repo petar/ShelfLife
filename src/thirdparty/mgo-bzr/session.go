@@ -202,8 +202,8 @@ func parseURL(url string) (servers []string, auth authInfo, options map[string]s
 	}
 	options = make(map[string]string)
 	if c := strings.Index(url, "?"); c != -1 {
-		for _, pair := range strings.Split(url[c+1:], ";", -1) {
-			l := strings.Split(pair, "=", 2)
+		for _, pair := range strings.SplitN(url[c+1:], ";", -1) {
+			l := strings.SplitN(pair, "=", 2)
 			if len(l) != 2 || l[0] == "" || l[1] == "" {
 				err = os.NewError("Connection option must be key=value: " + pair)
 				return
@@ -213,7 +213,7 @@ func parseURL(url string) (servers []string, auth authInfo, options map[string]s
 		url = url[:c]
 	}
 	if c := strings.Index(url, "@"); c != -1 {
-		pair := strings.Split(url[:c], ":", 2)
+		pair := strings.SplitN(url[:c], ":", 2)
 		if len(pair) != 2 || pair[0] == "" {
 			err = os.NewError("Credentials must be provided as user:pass@host")
 			return
@@ -237,7 +237,7 @@ func parseURL(url string) (servers []string, auth authInfo, options map[string]s
 	} else if auth.db == "" {
 		auth.db = "admin"
 	}
-	servers = strings.Split(url, ",", -1)
+	servers = strings.SplitN(url, ",", -1)
 	// XXX This is untested. The test suite doesn't use the standard port.
 	for i, server := range servers {
 		p := strings.LastIndexAny(server, "]:")

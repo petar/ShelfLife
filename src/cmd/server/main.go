@@ -13,7 +13,7 @@ import (
 	"github.com/petar/GoHTTP/server/rpc"
 
 	"github.com/petar/ShelfLife/db"
-	"github.com/petar/ShelfLife/social"
+	"github.com/petar/ShelfLife/sociability"
 )
 
 var (
@@ -32,18 +32,18 @@ func main() {
 	}
 
 	// Connect to database
-	db, err := db.NewDb(*flagDbAddr)
+	db, err := db.NewDb(*flagDbAddr, "shelflife")
 	if err != nil {
 		log.Fatalf("Problem connecting to db: %s", err)
 	}
 
 	// Attach RPC server module
 	rpcsub := rpc.NewRPC()
-	if err := rpcsub.RegisterName("social", social.NewAPI(db, []byte{1, 2, 3, 4})); err != nil {
+	if err := rpcsub.RegisterName("social", sociability.NewAPI(db, []byte{1, 2, 3, 4})); err != nil {
 		log.Fatalf("Problem registering social API: %s\n", err)
 	}
 	srv.AddSub("/api/", rpcsub)
 
 	fmt.Printf("· Serving %d requests in parallel ...\n", *flagParallel)
-	srv.Launch()
+	srv.Launch(*flagParallel)
 }

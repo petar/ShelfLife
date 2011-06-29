@@ -15,6 +15,7 @@ all: install
 DIRS=\
 	thirdparty/gobson-bzr\
 	thirdparty/mgo-bzr\
+	thirdparty/authcookie-git\
 	pkg/db\
 	pkg/sociability\
 	cmd/server\

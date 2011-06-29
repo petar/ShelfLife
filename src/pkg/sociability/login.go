@@ -6,9 +6,9 @@ package sociability
 
 import (
 	"os"
-	"github.com/dchest/authcookie"
 	"github.com/petar/GoHTTP/http"
 	"github.com/petar/GoHTTP/server/rpc"
+	"github.com/petar/ShelfLife/thirdparty/authcookie"
 	"github.com/petar/ShelfLife/db"
 )
 
@@ -56,7 +56,7 @@ const (
 
 // newSignInCookie returns a new cookie authenticating that the given 
 // user is signed in
-func (a *API) newSignInCookie(u *db.User) *http.Cookie {
+func (a *API) newSignInCookie(u *db.UserDoc) *http.Cookie {
 	duration := OneWeekInSec
 	return &http.Cookie{
 		Name:   "Login",
@@ -68,7 +68,7 @@ func (a *API) newSignInCookie(u *db.User) *http.Cookie {
 // verifySignInCookie checks that cookie is a valid authentication cookie,
 // and if so returns the user who is logged in with this cookie, or nil otherwise.
 // A non-nil error indicates a technical problem.
-func (a *API) verifySignInCookie(cookie *http.Cookie) (user *db.User, err os.Error) {
+func (a *API) verifySignInCookie(cookie *http.Cookie) (user *db.UserDoc, err os.Error) {
 	if cookie == nil || cookie.Name != "Login" {
 		return nil, nil
 	}
@@ -83,7 +83,7 @@ func (a *API) verifySignInCookie(cookie *http.Cookie) (user *db.User, err os.Err
 	return user, nil
 }
 
-func (a *API) whoAmI(args *rpc.Args) (user *db.User, err os.Error) {
+func (a *API) whoAmI(args *rpc.Args) (user *db.UserDoc, err os.Error) {
 	for _, cookie := range args.Cookies {
 		user, err = a.verifySignInCookie(cookie)
 		if err != nil {
@@ -192,13 +192,13 @@ func (a *API) SignUp(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	}
 
 	// Add the user
-	u = &db.User{
+	u = &db.UserDoc{
 		Name:         name,
 		Login:        login,
 		Email:        email,
 		HashPassword: hpass,
 	}
-	if err = a.db.AddUser(u); err != nil {
+	if _, err = a.db.AddUser(u); err != nil {
 		return ErrDb
 	}
 
