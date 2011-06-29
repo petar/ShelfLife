@@ -36,7 +36,7 @@ func (db *Db) initUser() os.Error {
 
 // AddUser adds a new user, while returning an error if 'login' or 'email' are duplicates.
 // Ir returns the user record's ID in the KPartite schema and any relevant error.
-func (db *Db) AddUser(u *UserDoc) (string, os.Error) {
+func (db *Db) AddUser(u *UserDoc) (bson.ObjectId, os.Error) {
 	return db.kp.AddNode("user", u)
 }
 

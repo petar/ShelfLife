@@ -133,11 +133,11 @@ func (kp *KPartite) GetEdgeTypes() []*EdgeType {
 // Node functions
 
 type NodeDoc struct {
-	ID    string      "_id"
-	Value interface{} "value"
+	ID    bson.ObjectId "_id"
+	Value interface{}   "value"
 }
 
-func (kp *KPartite) AddNode(nodeType string, value interface{}) (string, os.Error) {
+func (kp *KPartite) AddNode(nodeType string, value interface{}) (bson.ObjectId, os.Error) {
 	nd := &NodeDoc{
 		ID:    chooseID(),
 		Value: value,
@@ -149,7 +149,7 @@ func (kp *KPartite) AddNode(nodeType string, value interface{}) (string, os.Erro
 	return nd.ID, nt.C.Insert(nd)
 }
 
-func (kp *KPartite) UpdateNode(nodeType, nodeID string, value interface{}) os.Error {
+func (kp *KPartite) UpdateNode(nodeType string, nodeID bson.ObjectId, value interface{}) os.Error {
 	nt := kp.GetNodeType(nodeType)
 	if nt == nil {
 		return ErrType
@@ -165,7 +165,7 @@ func (kp *KPartite) FindNode(nodeType string, query interface{}) (*mgo.Query, os
 	return nt.C.Find(bson.D{{"value", query}}), nil
 }
 
-func chooseID() string {
+func chooseID() bson.ObjectId {
 	b := make([]byte, IDLEN)
 	for i := 0; i < IDLEN/4; i++ {
 		u := rand.Uint32()
@@ -174,29 +174,29 @@ func chooseID() string {
 		b[4*i+2] = byte((u >> 16) & 0xff)
 		b[4*i+3] = byte((u >> 24) & 0xff)
 	}
-	return string(b)
+	return bson.ObjectId(b)
 }
 
 // Edge functions
 
 type EdgeDoc struct {
-	ID    string      "_id"
-	From  string      "from"
-	To    string      "to"
-	Value interface{} "value"
+	ID    bson.ObjectId "_id"
+	From  bson.ObjectId "from"
+	To    bson.ObjectId "to"
+	Value interface{}   "value"
 }
 
-func (kp *KPartite) makeEdgeID(from, to string) string {
+func (kp *KPartite) makeEdgeID(from, to bson.ObjectId) bson.ObjectId {
 	kp.Lock()
 	kp.edgeHash.Reset()
 	kp.edgeHash.Write([]byte(from))
 	kp.edgeHash.Write([]byte(to))
 	h := kp.edgeHash.Sum()
 	kp.Unlock()
-	return string(h[:IDLEN])
+	return bson.ObjectId(h[:IDLEN])
 }
 
-func (kp *KPartite) AddEdge(edgeType string, from, to string, value interface{}) (string, os.Error) {
+func (kp *KPartite) AddEdge(edgeType string, from, to bson.ObjectId, value interface{}) (bson.ObjectId, os.Error) {
 	ed := &EdgeDoc{
 		ID:    kp.makeEdgeID(from, to),
 		From:  from,
@@ -210,7 +210,7 @@ func (kp *KPartite) AddEdge(edgeType string, from, to string, value interface{})
 	return ed.ID, et.C.Insert(ed)
 }
 
-func (kp *KPartite) UpdateEdge(edgeType, edgeID string, value interface{}) os.Error {
+func (kp *KPartite) UpdateEdge(edgeType string, edgeID bson.ObjectId, value interface{}) os.Error {
 	et := kp.GetEdgeType(edgeType)
 	if et == nil {
 		return ErrArg
@@ -218,11 +218,11 @@ func (kp *KPartite) UpdateEdge(edgeType, edgeID string, value interface{}) os.Er
 	return et.C.Update(bson.D{{"_id", edgeID}}, bson.D{{"value", value}})
 }
 
-func (kp *KPartite) UpdateEdgeAnchors(edgeType, from, to string, value interface{}) os.Error {
+func (kp *KPartite) UpdateEdgeAnchors(edgeType string, from, to bson.ObjectId, value interface{}) os.Error {
 	return kp.UpdateEdge(edgeType, kp.makeEdgeID(from, to), value)
 }
 
-func (kp *KPartite) IsEdge(edgeType string, from, to string) (bool, os.Error) {
+func (kp *KPartite) IsEdge(edgeType string, from, to bson.ObjectId) (bool, os.Error) {
 	et := kp.GetEdgeType(edgeType)
 	if et == nil {
 		return false, ErrArg
@@ -234,7 +234,7 @@ func (kp *KPartite) IsEdge(edgeType string, from, to string) (bool, os.Error) {
 	return n > 0, nil
 }
 
-func (kp *KPartite) RemoveEdge(edgeType, edgeID string) os.Error {
+func (kp *KPartite) RemoveEdge(edgeType string, edgeID bson.ObjectId) os.Error {
 	et := kp.GetEdgeType(edgeType)
 	if et == nil {
 		return ErrArg
@@ -242,13 +242,13 @@ func (kp *KPartite) RemoveEdge(edgeType, edgeID string) os.Error {
 	return et.C.Remove(bson.D{{"_id", edgeID}})
 }
 
-func (kp *KPartite) RemoveEdgeAnchors(edgeType, from, to string) os.Error {
+func (kp *KPartite) RemoveEdgeAnchors(edgeType string, from, to bson.ObjectId) os.Error {
 	return kp.RemoveEdge(edgeType, kp.makeEdgeID(from, to))
 }
 
 // Node-edge functions
 
-func (kp *KPartite) RemoveNode(nodeType, nodeID string) os.Error {
+func (kp *KPartite) RemoveNode(nodeType string, nodeID bson.ObjectId) os.Error {
 	nt := kp.GetNodeType(nodeType)
 	if nt == nil {
 		return ErrArg
@@ -265,7 +265,7 @@ func (kp *KPartite) RemoveNode(nodeType, nodeID string) os.Error {
 	return nil
 }
 
-func (kp *KPartite) LeavingEdges(edgeType string, from string) (*mgo.Query, os.Error) {
+func (kp *KPartite) LeavingEdges(edgeType string, from bson.ObjectId) (*mgo.Query, os.Error) {
 	et := kp.GetEdgeType(edgeType)
 	if et == nil {
 		return nil, ErrType
@@ -273,7 +273,7 @@ func (kp *KPartite) LeavingEdges(edgeType string, from string) (*mgo.Query, os.E
 	return et.C.Find(bson.D{{"from", from}}), nil
 }
 
-func (kp *KPartite) ArrivingEdges(edgeType string, to string) (*mgo.Query, os.Error) {
+func (kp *KPartite) ArrivingEdges(edgeType string, to bson.ObjectId) (*mgo.Query, os.Error) {
 	et := kp.GetEdgeType(edgeType)
 	if et == nil {
 		return nil, ErrType
@@ -281,7 +281,7 @@ func (kp *KPartite) ArrivingEdges(edgeType string, to string) (*mgo.Query, os.Er
 	return et.C.Find(bson.D{{"to", to}}), nil
 }
 
-func (kp *KPartite) LeavingDegree(edgeType string, from string) (int, os.Error) {
+func (kp *KPartite) LeavingDegree(edgeType string, from bson.ObjectId) (int, os.Error) {
 	q, err := kp.LeavingEdges(edgeType, from)
 	if err != nil {
 		return 0, err
@@ -289,7 +289,7 @@ func (kp *KPartite) LeavingDegree(edgeType string, from string) (int, os.Error) 
 	return q.Count()
 }
 
-func (kp *KPartite) ArrivingDegree(edgeType string, to string) (int, os.Error) {
+func (kp *KPartite) ArrivingDegree(edgeType string, to bson.ObjectId) (int, os.Error) {
 	q, err := kp.ArrivingEdges(edgeType, to)
 	if err != nil {
 		return 0, err
