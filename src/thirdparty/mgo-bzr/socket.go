@@ -31,7 +31,7 @@
 package mgo
 
 import (
-	"launchpad.net/gobson/bson"
+	"github.com/petar/ShelfLife/thirdparty/bson"
 	"sync"
 	"net"
 	"os"

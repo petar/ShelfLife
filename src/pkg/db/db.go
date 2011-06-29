@@ -12,29 +12,27 @@ import (
 
 // Db encapsulates all interaction with the database
 type Db struct {
-	// Session with the Db server
-	s *mgo.Session
-
-	// Users collection
-	u mgo.Collection
-
-	// Follow collection
-	f mgo.Collection
+	s  *mgo.Session
+	kp *KPartite
 }
 
 // NewDb creates a new Db interface to the database.
 // addr is the IP address and port, in string form, of the database server.
-func NewDb(addr string) (db *Db, err os.Error) {
+func NewDb(addr, dbname string) (db *Db, err os.Error) {
 	s, err := mgo.Mongo(addr)
 	if err != nil {
 		log.Printf("Problem connecting to MongoDB: %s", err)
 		return nil, err
 	}
-	return &Db{ 
-		s: s,
-		u: s.DB("shelflife").C("users"),
-		f: s.DB("shelflife").C("follow"),
-	}, nil
+	db = &Db{ 
+		s:  s,
+		kp: NewKPartite(dbname, s),
+	}
+	if err := db.initUser(); err != nil {
+		db.Close()
+		return nil, err
+	}
+	return db, nil
 }
 
 func (db *Db) Close() os.Error {

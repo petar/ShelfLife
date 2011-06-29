@@ -33,7 +33,7 @@ package mgo
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"launchpad.net/gobson/bson"
+	"github.com/petar/ShelfLife/thirdparty/bson"
 	"sync"
 	"os"
 	"reflect"

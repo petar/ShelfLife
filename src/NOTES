@@ -1,0 +1,13 @@
+
+* register node/edge types before server start
+* test user system
+
+* add RPC tags for arg and method names
+* cli
+	* login
+	* follow
+	* like
+* html demo
+
+* notification system
+	* cli

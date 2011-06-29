@@ -21,6 +21,7 @@ panic
 src/cmd/server/shelf-server
 
 .bzr
+live
 
 syntax:regexp
 ^pkg/

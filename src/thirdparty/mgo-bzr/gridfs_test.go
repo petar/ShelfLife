@@ -31,7 +31,7 @@
 package mgo_test
 
 import (
-	"launchpad.net/gobson/bson"
+	"github.com/petar/ShelfLife/thirdparty/bson"
 	. "launchpad.net/gocheck"
 	"launchpad.net/mgo"
 	"os"

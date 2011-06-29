@@ -34,7 +34,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"hash"
-	"launchpad.net/gobson/bson"
+	"github.com/petar/ShelfLife/thirdparty/bson"
 	"os"
 	"runtime"
 	"sync"

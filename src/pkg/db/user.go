@@ -11,45 +11,76 @@ import (
 	"github.com/petar/ShelfLife/thirdparty/mgo"
 )
 
-type User struct {
-	Name         string
-	Login        string
-	Email        string
-	HashPassword string
+type UserDoc struct {
+	Name         string "name"
+	Login        string "login"
+	Email        string "email"
+	HashPassword string "password"
 }
 
-func (db *Db) AddUser(u *User) os.Error {
-	return db.u.Insert(u)
+// initUser configures the the 'user' collection
+func (db *Db) initUser() os.Error {
+	nt, err := db.kp.AddNodeType("user")
+	if err != nil {
+		return err
+	}
+	index := mgo.Index{
+		Key: []string{"value.email", "value.login"},
+		Unique: true,
+		DropDups: false,
+		Background: false,
+		Sparse: false,
+	}
+	return nt.C.EnsureIndex(index)
+}
+
+// AddUser adds a new user, while returning an error if 'login' or 'email' are duplicates.
+// Ir returns the user record's ID in the KPartite schema and any relevant error.
+func (db *Db) AddUser(u *UserDoc) (string, os.Error) {
+	return db.kp.AddNode("user", u)
+}
+
+type userFind struct {
+	ID    string  "_id"
+	Value UserDoc "value"
 }
 
 // FindUserByEmail looks up a user record with the given email.
 // A non-nil error indicates a connectivity problem. 
 // A missing user returns u == nil and err == nil.
-func (db *Db) FindUserByEmail(email string) (u *User, err os.Error) {
-	u = &User{}
-	err = db.u.Find(gobson.M{ "email": email }).One(u)
+func (db *Db) FindUserByEmail(email string) (u *UserDoc, err os.Error) {
+	q, err := db.kp.FindNode("user", bson.D{{"email", email}})
+	if err != nil {
+		return nil, err
+	}
+	uf := &userFind{}
+	err = q.One(uf)
 	if err == mgo.NotFound {
 		return nil, nil
 	}
 	if err != nil {
-		log.Printf("MongoDB error: %s\n", err)
-		u = nil
+		log.Printf("DB error: %s\n", err)
+		return nil, err
 	}
-	return u, err
+	return &uf.Value, nil
 }
 
 // FindUserByLogin looks up a user record with the given login (i.e. username).
 // A non-nil error indicates a connectivity problem. 
 // A missing user returns u == nil and err == nil.
-func (db *Db) FindUserByLogin(login string) (u *User, err os.Error) {
-	u = &User{}
-	err = db.u.Find(gobson.M{ "login": login }).One(u)
+func (db *Db) FindUserByLogin(login string) (u *UserDoc, err os.Error) {
+	q, err := db.kp.FindNode("user", bson.D{{"login", login}})
+	if err != nil {
+		return nil, err
+	}
+	uf := &userFind{}
+	err = q.One(uf)
 	if err == mgo.NotFound {
 		return nil, nil
 	}
 	if err != nil {
-		log.Printf("MongoDB error: %s\n", err)
-		u = nil
+		log.Printf("DB error: %s\n", err)
+		return nil, err
 	}
-	return u, err
+	return &uf.Value, nil
 }

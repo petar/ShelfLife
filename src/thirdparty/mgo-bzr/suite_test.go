@@ -35,7 +35,7 @@ import (
 	"flag"
 	"fmt"
 	. "launchpad.net/gocheck"
-	"launchpad.net/gobson/bson"
+	"github.com/petar/ShelfLife/thirdparty/bson"
 	"launchpad.net/mgo"
 	"os"
 	"strings"
