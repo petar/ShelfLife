@@ -23,11 +23,11 @@ import (
 func (a *API) SignInLogin(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	
 	// Validate and sanitize arguments
-	login, _ := args.String("Login")
+	login, _ := args.QueryString("Login")
 	if login, err = SanitizeLogin(login); err != nil {
 		return ErrApp
 	}
-	hpass, _ := args.String("HPass")
+	hpass, _ := args.QueryString("HPass")
 
 	// Fetch user for this login
 	u, err := a.db.FindUserByLogin(login)
@@ -122,11 +122,11 @@ func (a *API) WhoAmI(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 func (a *API) SignInEmail(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	
 	// Validate and sanitize arguments
-	email, _ := args.String("Email")
+	email, _ := args.QueryString("Email")
 	if email, err = SanitizeEmail(email); err != nil {
 		return ErrApp
 	}
-	hpass, _ := args.String("HPass")
+	hpass, _ := args.QueryString("HPass")
 
 	// Fetch user for this login
 	u, err := a.db.FindUserByEmail(email)
@@ -161,19 +161,19 @@ func (a *API) SignInEmail(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 func (a *API) SignUp(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 
 	// Validate and sanitize arguments
-	name, _ := args.String("Name")
+	name, _ := args.QueryString("Name")
 	if name, err = SanitizeName(name); err != nil {
 		return ErrApp
 	}
-	email, _ := args.String("Email")
+	email, _ := args.QueryString("Email")
 	if email, err = SanitizeEmail(email); err != nil {
 		return ErrApp
 	}
-	login, _ := args.String("Login")
+	login, _ := args.QueryString("Login")
 	if login, err = SanitizeLogin(login); err != nil {
 		return ErrApp
 	}
-	hpass, _ := args.String("HPass")
+	hpass, _ := args.QueryString("HPass")
 
 	// Check that a user like this doesn't already exist
 	u, err := a.db.FindUserByLogin(login)
@@ -214,7 +214,7 @@ func (a *API) SignUp(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 //   non-nil: If a technical problem occured
 //
 func (a *API) HaveLogin(args *rpc.Args, r *rpc.Ret) os.Error {
-	login, err := args.String("Login")
+	login, err := args.QueryString("Login")
 	if err != nil {
 		return err
 	}

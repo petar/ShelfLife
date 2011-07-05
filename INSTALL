@@ -1,6 +1,13 @@
 
-Prerequisites:
+Build steps
+===========
 
-(*) The SHELFLIFE environment variable points to this directory
+(*) Set the SHELFLIFE environment variable to point at this directory
 
-(*) The MongoDB bin directory is in the PATH environment variable
+(*) Make sure the MongoDB bin directory is in the PATH environment variable
+
+(*) Install COMPASS (compass-style.org)
+
+	gem update --system
+	gem install compass
+
