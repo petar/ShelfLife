@@ -11,6 +11,7 @@ import (
 	"os"
 	"github.com/petar/GoHTTP/server"
 	"github.com/petar/GoHTTP/server/rpc"
+	"github.com/petar/GoHTTP/server/static"
 
 	"github.com/petar/ShelfLife/db"
 	"github.com/petar/ShelfLife/sociability"
@@ -19,6 +20,7 @@ import (
 var (
 	flagDbAddr    = flag.String("db", "127.0.0.1:22000", "IP address of DB server")
 	flagBind      = flag.String("bind", "0.0.0.0:3300", "Address to bind server to")
+	flagStatic    = flag.String("static", "", "If non-empty, static files served from this directory")
 	flagParallel  = flag.Int("parallel", 1, "Number of requests served in parallel")
 )
 
@@ -37,6 +39,11 @@ func main() {
 		log.Fatalf("Problem connecting to db: %s", err)
 	}
 
+	// Attach static file server
+	if *flagStatic != "" {
+		srv.AddSub("/s/", static.NewStaticSub(*flagStatic))	
+	}
+
 	// Attach RPC server module
 	rpcsub := rpc.NewRPC()
 	if err := rpcsub.RegisterName("social", sociability.NewAPI(db, []byte{1, 2, 3, 4})); err != nil {
@@ -46,4 +53,5 @@ func main() {
 
 	fmt.Printf("· Serving %d requests in parallel ...\n", *flagParallel)
 	srv.Launch(*flagParallel)
+	<-make(chan int)
 }

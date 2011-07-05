@@ -4,6 +4,11 @@
 	* follow
 	* like
 * html demo
+	* add modernizr
+	* add guides.js
+
+* add PUT, POST to RPC system
+* add url-per-resource scheme
 
 * notification system
 	* cli
