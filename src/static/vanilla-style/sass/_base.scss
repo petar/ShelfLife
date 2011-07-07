@@ -3,7 +3,10 @@ $blueprint-grid-width   : 30px;
 $blueprint-grid-margin  : 10px;
 $font-color             : #333;
 
+@import "compass/css3";
 @import "compass/reset";
 @import "compass/utilities";
 @import "blueprint";
 
+//@include font-face("SSFace", font-files("OpenSans/OpenSans-Regular.ttf", truetype));
+@include font-face("SSFace", font-files("Lato/Lato-Bold.ttf", truetype));

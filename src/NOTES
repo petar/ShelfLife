@@ -1,4 +1,5 @@
-
+* login -> username (?)
+	* add signinUserOrEmail
 * cli
 	* login
 	* follow

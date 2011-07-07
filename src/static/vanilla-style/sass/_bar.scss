@@ -1,0 +1,54 @@
+$ss-bar-height: 27px;
+
+@mixin ss-bar-font {
+	//font: 13px/27px SSFace;
+	font: 13px/27px Arial;
+}
+
+div#ss-bar {
+	@include ss-bar-font;
+	height: $ss-bar-height;
+	background: #0af;
+	vertical-align: center;
+}
+
+div#ss-bar > div {
+	height: 100%;
+	float: right;
+}
+
+div#ss-bar > div > ol {
+	display: block;
+}
+
+div#ss-bar > div > ol > li {
+	display: inline-block;
+	list-style: none;
+	padding: 0;
+}
+
+@mixin ss-box-base {
+	color: #fff;
+	cursor: default;
+	padding-left: 4px;
+	padding-right: 4px;
+	padding-bottom: 10px;
+	padding-top: 13px;
+	border-radius: 6px;
+	margin-right: 3px;
+	//text-shadow: 1px 1px #045;
+}
+.ss-box {
+	@include ss-box-base;
+}
+.ss-box-h {
+	@include ss-box-base;
+	&:hover {
+		color: #fff;
+		background: #1c2;
+		//text-shadow: 1px 1px #555;
+	}
+}
+a.boxing {
+	text-decoration: none !important;
+}
