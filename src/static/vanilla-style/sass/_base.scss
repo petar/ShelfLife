@@ -10,3 +10,29 @@ $font-color             : #333;
 
 //@include font-face("SSFace", font-files("OpenSans/OpenSans-Regular.ttf", truetype));
 @include font-face("SSFace", font-files("Lato/Lato-Bold.ttf", truetype));
+
+@mixin drop-shadow($color) {
+	-webkit-box-shadow:0 1px 4px $color; // rgba(0, 0, 0, 0.3); //, 0 0 40px rgba(0, 0, 0, 0.1) inset;
+	   -moz-box-shadow:0 1px 4px $color; // rgba(0, 0, 0, 0.3); //, 0 0 40px rgba(0, 0, 0, 0.1) inset;
+	        box-shadow:0 1px 4px $color; // rgba(0, 0, 0, 0.3); //, 0 0 40px rgba(1, 1, 1, 0.9) inset;
+}
+
+@mixin drop-shadow-curved($color) {
+	&:before {
+		top:10px;
+		bottom:10px;
+		left:0;
+		right:50%;
+		-webkit-box-shadow:0 0 15px $color; //rgba(0,0,0,0.6);
+		-moz-box-shadow:0 0 15px $color; //rgba(0,0,0,0.6);
+		box-shadow:0 0 15px $color; //rgba(0,0,0,0.6);
+		-moz-border-radius:10px / 100px;
+		border-radius:10px / 100px;
+	}
+}
+
+@mixin drop-shadow-curved-vt-2($color) {
+	&:before {
+		right:0;
+	}
+}

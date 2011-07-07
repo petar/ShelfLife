@@ -2,7 +2,7 @@ $ss-bar-height: 27px;
 
 @mixin ss-bar-font {
 	//font: 13px/27px SSFace;
-	font: 13px/27px Arial;
+	font: 13px/27px Verdana;
 }
 
 div#ss-bar {
@@ -10,6 +10,7 @@ div#ss-bar {
 	height: $ss-bar-height;
 	background: #0af;
 	vertical-align: center;
+	@include drop-shadow(rgba(0, 0, 0, 0.3));
 }
 
 div#ss-bar > div {
@@ -19,34 +20,50 @@ div#ss-bar > div {
 
 div#ss-bar > div > ol {
 	display: block;
+	padding: 0;
+	margin: 0;
 }
 
 div#ss-bar > div > ol > li {
 	display: inline-block;
 	list-style: none;
 	padding: 0;
+	margin: 0;
 }
 
 @mixin ss-box-base {
-	color: #fff;
+	color: #eff;
 	cursor: default;
+	padding: 10px;
+	margin: 0px;
+	//border: 1px solid red;
+	/*
 	padding-left: 4px;
 	padding-right: 4px;
 	padding-bottom: 10px;
 	padding-top: 13px;
-	border-radius: 6px;
-	margin-right: 3px;
+	*/
+	border-radius: 3px;
 	//text-shadow: 1px 1px #045;
 }
-.ss-box {
+span.ss-box {
 	@include ss-box-base;
 }
-.ss-box-h {
+span.ss-box-sep {
+	@include ss-box-base;
+	padding: 0px;
+	margin: 0px;
+}
+$ss-box-h-color: #5df;
+span.ss-box-h {
 	@include ss-box-base;
 	&:hover {
 		color: #fff;
-		background: #1c2;
+		background: $ss-box-h-color;
 		//text-shadow: 1px 1px #555;
+		@include drop-shadow(rgba(0, 0, 0, 0.3));
+		@include drop-shadow-curved(rgba(0, 0, 0, 0.3));
+		@include drop-shadow-curved-vt-2(rgba(0, 0, 0, 0.3));
 	}
 }
 a.boxing {
