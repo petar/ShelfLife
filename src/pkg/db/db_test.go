@@ -19,7 +19,7 @@ func TestUser(t *testing.T) {
 		Name:         "petar maymounkov",
 		Login:        "ma51",
 		Email:        "petar@5ttt.org",
-		HashPassword: "aaa",
+		Password:     "aaa",
 	}
 	uid, err := db.AddUser(u)
 	if err != nil {

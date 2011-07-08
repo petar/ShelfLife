@@ -162,7 +162,15 @@ func (kp *KPartite) FindNode(nodeType string, query interface{}) (*mgo.Query, os
 	if nt == nil {
 		return nil, ErrType
 	}
-	return nt.C.Find(bson.D{{"value", query}}), nil
+	return nt.C.Find(rewriteQuery(query)), nil
+}
+
+func rewriteQuery(q interface{}) interface{} {
+	dq := q.(bson.D)
+	for i, _ := range dq {
+		dq[i].Name = "value." + dq[i].Name
+	}
+	return dq
 }
 
 func chooseID() bson.ObjectId {

@@ -12,10 +12,10 @@ import (
 )
 
 type UserDoc struct {
-	Name         string "name"
-	Login        string "login"
-	Email        string "email"
-	HashPassword string "password"
+	Name     string "name"
+	Login    string "login"
+	Email    string "email"
+	Password string "password"
 }
 
 // initUser configures the the 'user' collection

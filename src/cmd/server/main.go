@@ -46,7 +46,7 @@ func main() {
 
 	// Attach RPC server module
 	rpcsub := rpc.NewRPC()
-	if err := rpcsub.RegisterName("social", sociability.NewAPI(db, []byte{1, 2, 3, 4})); err != nil {
+	if err := rpcsub.RegisterName("ss", sociability.NewAPI(db, []byte{1, 2, 3, 4})); err != nil {
 		log.Fatalf("Problem registering social API: %s\n", err)
 	}
 	srv.AddSub("/api/", rpcsub)

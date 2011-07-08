@@ -5,6 +5,7 @@
 package sociability
 
 import (
+	//"log"
 	"os"
 	"github.com/petar/GoHTTP/http"
 	"github.com/petar/GoHTTP/server/rpc"
@@ -14,8 +15,8 @@ import (
 
 // RPC/SignInLogin logs in a user, specified by their login (aka username)
 // Args:
-//   "Login" string
-//   "HPass" string = HMAC-hashed password
+//   "L" string
+//   "P" string = HMAC-hashed password
 // Err:
 //   ErrApp:  If the sign-in information is incorrect
 //   non-nil: If a technical problem occured
@@ -23,11 +24,11 @@ import (
 func (a *API) SignInLogin(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	
 	// Validate and sanitize arguments
-	login, _ := args.QueryString("Login")
+	login, _ := args.QueryString("L")
 	if login, err = SanitizeLogin(login); err != nil {
 		return ErrApp
 	}
-	hpass, _ := args.QueryString("HPass")
+	hpass, _ := args.QueryString("P")
 
 	// Fetch user for this login
 	u, err := a.db.FindUserByLogin(login)
@@ -39,12 +40,14 @@ func (a *API) SignInLogin(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	}
 
 	// Verify credentials
-	if !VerifyPassword(hpass, u.HashPassword) {
+	if !VerifyPassword(hpass, u.Password) {
 		return ErrSec
 	}
 
 	// Set authentication cookie
-	r.AddSetCookie(a.newSignInCookie(u))
+	r.AddSetCookie(a.newUserAuthCookie(u))
+	// Set user info cookie
+	r.AddSetCookie(a.newUserInfoCookie(u))
 
 	return nil
 }
@@ -54,13 +57,23 @@ const (
 	OneWeekInSec = OneDayInSec*7
 )
 
-// newSignInCookie returns a new cookie authenticating that the given 
+// newUserAuthCookie returns a new cookie authenticating that the given 
 // user is signed in
-func (a *API) newSignInCookie(u *db.UserDoc) *http.Cookie {
+func (a *API) newUserAuthCookie(u *db.UserDoc) *http.Cookie {
 	duration := OneWeekInSec
 	return &http.Cookie{
-		Name:   "Login",
+		Name:   "SS-UserAuth",
 		Value:  authcookie.NewSinceNow(u.Login, int64(duration), a.loginSecret),
+		MaxAge: duration,
+	}
+}
+
+// newUserInfoCookie returns a new cookie with user information
+func (a *API) newUserInfoCookie(u *db.UserDoc) *http.Cookie {
+	duration := 2*OneWeekInSec
+	return &http.Cookie{
+		Name:   "SS-UserInfo",
+		Value:  u.Name,
 		MaxAge: duration,
 	}
 }
@@ -69,7 +82,7 @@ func (a *API) newSignInCookie(u *db.UserDoc) *http.Cookie {
 // and if so returns the user who is logged in with this cookie, or nil otherwise.
 // A non-nil error indicates a technical problem.
 func (a *API) verifySignInCookie(cookie *http.Cookie) (user *db.UserDoc, err os.Error) {
-	if cookie == nil || cookie.Name != "Login" {
+	if cookie == nil || cookie.Name != "SS-UserAuth" {
 		return nil, nil
 	}
 	login := authcookie.Login(cookie.Value, a.loginSecret)
@@ -113,8 +126,8 @@ func (a *API) WhoAmI(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 
 // RPC/SignInEmail logs in a user, specified by their email
 // Args:
-//   "Email" string
-//   "HPass" string = HMAC-hashed password
+//   "E" string
+//   "P" string = HMAC-hashed password
 // Err:
 //   ErrApp:  If the sign-in information is incorrect
 //   non-nil: If a technical problem occured
@@ -122,11 +135,11 @@ func (a *API) WhoAmI(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 func (a *API) SignInEmail(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	
 	// Validate and sanitize arguments
-	email, _ := args.QueryString("Email")
+	email, _ := args.QueryString("E")
 	if email, err = SanitizeEmail(email); err != nil {
 		return ErrApp
 	}
-	hpass, _ := args.QueryString("HPass")
+	hpass, _ := args.QueryString("P")
 
 	// Fetch user for this login
 	u, err := a.db.FindUserByEmail(email)
@@ -138,42 +151,35 @@ func (a *API) SignInEmail(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	}
 
 	// Verify credentials
-	if !VerifyPassword(hpass, u.HashPassword) {
+	if !VerifyPassword(hpass, u.Password) {
 		return ErrSec
 	}
 
 	// Set authentication cookie
-	r.AddSetCookie(a.newSignInCookie(u))
+	r.AddSetCookie(a.newUserAuthCookie(u))
+	// Set user info cookie
+	r.AddSetCookie(a.newUserInfoCookie(u))
 
 	return nil
 }
 
-// RPC/SignUp registers a new user
-// Args:
-//   "Name"  string
-//   "Email" string
-//   "Login" string
-//   "HPass" string = HMAC-hashed password
-// Err:
-//   ErrApp:  If the application logic prohibits this registration
-//   non-nil: If a technical problem occured
-//
+// SignUp registers a new user
 func (a *API) SignUp(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 
 	// Validate and sanitize arguments
-	name, _ := args.QueryString("Name")
+	name, _ := args.QueryString("N")
 	if name, err = SanitizeName(name); err != nil {
 		return ErrApp
 	}
-	email, _ := args.QueryString("Email")
+	email, _ := args.QueryString("E")
 	if email, err = SanitizeEmail(email); err != nil {
 		return ErrApp
 	}
-	login, _ := args.QueryString("Login")
+	login, _ := args.QueryString("L")
 	if login, err = SanitizeLogin(login); err != nil {
 		return ErrApp
 	}
-	hpass, _ := args.QueryString("HPass")
+	hpass, _ := args.QueryString("P")
 
 	// Check that a user like this doesn't already exist
 	u, err := a.db.FindUserByLogin(login)
@@ -193,10 +199,10 @@ func (a *API) SignUp(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 
 	// Add the user
 	u = &db.UserDoc{
-		Name:         name,
-		Login:        login,
-		Email:        email,
-		HashPassword: hpass,
+		Name:     name,
+		Login:    login,
+		Email:    email,
+		Password: hpass,
 	}
 	if _, err = a.db.AddUser(u); err != nil {
 		return ErrDb
@@ -205,27 +211,19 @@ func (a *API) SignUp(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	return nil
 }
 
-// RPC/HaveLogin checks if this login (i.e. username) is already taken
-// Args:
-//   "Login" string
-// Ret:
-//   "Have" bool
-// Err:
-//   non-nil: If a technical problem occured
-//
-func (a *API) HaveLogin(args *rpc.Args, r *rpc.Ret) os.Error {
-	login, err := args.QueryString("Login")
+// IsLoginAvailable checks if this login (i.e. username) is already taken
+func (a *API) IsLoginAvailable(args *rpc.Args, r *rpc.Ret) os.Error {
+	login, err := args.QueryString("L")
 	if err != nil {
 		return err
 	}
 	if login, err = SanitizeLogin(login); err != nil {
-		r.SetBool("Have", false)
-		return nil
+		return rpc.ErrArg
 	}
 	u, err := a.db.FindUserByLogin(login)
 	if err != nil {
 		return ErrDb
 	}
-	r.SetBool("Have", u != nil)
+	r.SetBool("Available", u == nil)
 	return nil
 }
