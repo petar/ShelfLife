@@ -64,6 +64,7 @@ func (a *API) newUserAuthCookie(u *db.UserDoc) *http.Cookie {
 	return &http.Cookie{
 		Name:   "SS-UserAuth",
 		Value:  authcookie.NewSinceNow(u.Login, int64(duration), a.loginSecret),
+		Path:   "/",
 		MaxAge: duration,
 	}
 }
@@ -74,6 +75,7 @@ func (a *API) newUserInfoCookie(u *db.UserDoc) *http.Cookie {
 	return &http.Cookie{
 		Name:   "SS-UserInfo",
 		Value:  u.Name,
+		Path:   "/",
 		MaxAge: duration,
 	}
 }

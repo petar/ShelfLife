@@ -1,0 +1,63 @@
+// This is a white out cover of the whole canvas, which prevents event from propagating below it
+div.ss-glass {
+	display: block;
+	position: fixed;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	background: white;
+	opacity: 0.7;
+	z-index: 100;
+}
+
+// An ss-screen is ...
+div.ss-screen {
+	display: block;
+	position: fixed;
+	z-index: 200;
+	top: 0px;
+	bottom: 0px;
+	left: 0px;
+	right: 0px;
+	vertical-align: middle;
+	text-align: center;
+}
+
+// Styles for anything layed out in a ss-screen
+.ss-screen {
+	font: 13px $main-font;
+}
+.ss-screen h2 {
+	color: #02d;
+	font: 30px/40px $headings-font;
+}
+.ss-screen .footnote {
+	font: 9px $main-font;
+}
+
+
+// ss-simple-form is a simple form with one column of fields
+.ss-simple-form {
+	display: inline-block;
+	margin-top: 100px;
+	text-align: center;
+}
+.ss-simple-form table { margin: 30px; }
+.ss-simple-form td { vertical-align: top; text-align: left; }
+.ss-simple-form td.label { 
+	font: 13px/33px $main-font;
+	text-align: right; 
+}
+.ss-simple-form td.submit { text-align: center; }
+.ss-simple-form td { padding: 10px; }
+.ss-simple-form .button {
+	font: 13px/20px $main-font;
+}
+.ss-simple-form input[type="text"], .ss-simple-form input[type="password"] {
+	background: #ffd;
+	font: 14px/18px $main-font;
+	padding: 4px;
+	width: 200px;
+}
+

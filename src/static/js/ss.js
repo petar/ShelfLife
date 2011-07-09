@@ -107,4 +107,58 @@
 		}
 	};
 
+	// ss.view contains all backbone.js views for various UI elements
+	ss.view = {
+		
+		// SignIn is the sign in/up/out pannel
+		SignIn: Backbone.View.extend({
+			// XXX
+		}),
+	};
+
+	// ss.model contains backbone.js models for the various functionalities
+	ss.model = {
+
+		// User manages user authentication: sign-in, sign-out and sign-up
+		User: Backbone.Model.extend({
+		
+			defaults: { "name": null },		  
+
+			initialize: function() { this._refresh(); },
+
+			_refresh: function() {
+				this.set({"name": ss.login.whatIsMyName()});
+			},
+
+			// signIn tries to sign the (login,password)
+			signIn: function(login, password, okcb, ecb) {
+				ss.login.signOut();
+				ss.login.signIn(login, password,
+					_.bind(function(okcb) { 
+						this._refresh(); 
+						if (_.isFunction(okcb)) okcb(); 
+					}, this, okcb),
+					ecb);
+			},
+
+			// signOut logs out the currently logged in user
+			signOut: function() {
+				ss.login.signOut();
+				this._refresh();
+			},
+
+			// signUp registers a new user with the backend system
+			signUp: function(name, email, login, password, okcb, ecb) {
+				ss.login.signUp(name, email, login, password, okcb, ecb);
+			}
+
+		})
+	
+	};
+
+	ss.vars = {
+		// theUser is the unique global User model
+		User: new ss.model.User
+	};
+
 }).call(this);
