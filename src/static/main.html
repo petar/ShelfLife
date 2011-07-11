@@ -40,26 +40,26 @@
 		</div>
 	</script>
 
-	<script id="ss-glass-tmpl" type="text/x-jquery-tmpl">
-		<div class="ss-glass"></div>
-	</script>
-
 	<script id="ss-signinbox-tmpl" type="text/x-jquery-tmpl">
 		<div class="ss-glass"></div>
 		<div class="ss-screen">
 			<div class="ss-simple-form">
-				<h2>Sign in</h2>
+				<h2>Sign into your account</h2>
 				<table>
 					<tr><td class="label">Username:</td><td><input type="text" id="u" /></td></tr>
 					<tr><td class="label">Password:</td><td><input type="password" id="p" /><br>
-						<a class="footnote" href="">Forgot my password</a></td></tr>
-					<tr><td></td><td class="submit"><a class="button" href="">Sign in</a></td></tr>
+						<a class="footnote" href="">Forgot your password?</a></td></tr>
+				<tr><td colspan=2 class="submit">
+						<span id="ok" class="button">Sign me in</span>&nbsp;
+						<span id="cancel" class="button">Never mind</span>
+				</td></tr>
 				</table>
 			</div>
 		</div>
 	</script>
 
 	<script id="ss-signupbox-tmpl" type="text/x-jquery-tmpl">
+		<div class="ss-glass"></div>
 		<div class="ss-screen">
 			<div class="ss-simple-form">
 				<h2>Register</h2>
@@ -68,15 +68,18 @@
 					<tr><td class="label">Email:</td><td><input type="text" id="e" /></td></tr>
 					<tr><td class="label">Username:</td><td><input type="text" id="l" /></td></tr>
 					<tr><td class="label">Password:</td><td><input type="password" id="p" /></td></tr>
-					<tr><td></td><td class="submit"><a class="button" href="">Sign me up!</a></td></tr>
+					<tr><td></td><td class="submit">
+						<span id="ok" class="button">Sign me up!</span>&nbsp;
+						<span id="cancel" class="button">Never mind</span>
+					</td></tr>
 				</table>
 			</div>
 		</div>
 	</script>
 
 	<!-- insert this code in your pages -->
-	<script type="text/javascript" src="/s/js/x/underscore.js"></script>
 	<script type="text/javascript" src="/s/js/x/jquery.js"></script>
+	<script type="text/javascript" src="/s/js/x/underscore.js"></script>
 	<script type="text/javascript" src="/s/js/x/jquery.tmpl.js"></script>
 	<script type="text/javascript" src="/s/js/x/json2.js"></script>
 	<script type="text/javascript" src="/s/js/x/backbone.js"></script>

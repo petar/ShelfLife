@@ -10,10 +10,11 @@ $font-color             : #333;
 @import "blueprint/grid";
 
 //@include font-face("SSFace", font-files("OpenSans/OpenSans-Regular.ttf", truetype));
-@include font-face("SSFace", font-files("Lato/Lato-Bold.ttf", truetype));
-@include font-face("BrullyRegular", font-files("Brully/Brully-Regular.ttf", truetype));
+@include font-face("HeadingsFace", font-files("OpenSans/OpenSans-Italic.ttf", truetype));
+//@include font-face("SSFace", font-files("Lato/Lato-Bold.ttf", truetype));
+@include font-face("BrullyItalic", font-files("Brully/Brully-Italic.ttf", truetype));
 
-$headings-font: "SSFace";
+$headings-font: "BrullyItalic";
 $main-font: "Verdana";
 
 @mixin drop-shadow($color) {

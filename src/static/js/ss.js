@@ -1,4 +1,5 @@
-(function() {
+function initSS() {
+	console.log('Loading sociability...');
 
 	// Save a reference to the global object
 	var root = this;
@@ -168,7 +169,6 @@
 			render: function() {
 				$(this.el).html($("#ss-bar-tmpl").tmpl());
 				var name = this.model.whoAmI();
-				console.log(name);
 				if (!_.isNull(name)) {
 					this.$("#sign-in").css("display", "none");
 					this.$("#sign-up").css("display", "none");
@@ -189,13 +189,43 @@
 
 			tagName: "div",
 
+			events: { 'click #ok': 'ok', 'click #cancel': 'cancel' },
+
 			initialize: function() {
+				_.bindAll(this, 'ok', 'cancel', 'render', '_signInOk', '_signInErr');
 				this.model = ss.vars.user;
 			},
 			
 			render: function() {
-				$("#ss-signinbox-tmpl").tmpl().prependTo(this.el);
+				$(this.el).html($("#ss-signinbox-tmpl").tmpl());
 				return this;
+			},
+
+			ok: function() {
+				// disable submit button
+				var u = this.$("#u").val()
+				var p = this.$("#p").val()
+				this.model.signIn(u, p, this._signInOk, this._signInErr);
+			},
+
+			cancel: function() { 
+				this.cancelled = true;
+				this.remove(); 
+			},
+
+			_signInOk: function() {
+				this.remove();
+			},
+
+			_signInErr: function() {
+				if (!this.cancelled) {
+					// XXX show msg
+				}
+				// re-enable submit button
+			},
+
+			remove: function() {
+				$(this.el).remove();
 			}
 		})
 	};
@@ -221,4 +251,10 @@
 		}
 	};
 
-}).call(this);
+}
+
+function loadRequired(cb) {
+	$.getScript('js/x/backbone.js', cb);
+}
+
+$(initSS.call(this));
