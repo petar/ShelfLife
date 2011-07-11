@@ -185,6 +185,7 @@ function initSS() {
 			}
 		}),
 
+		// SignInBox is an overlay UI view that handles the UX for a sign in
 		SignInBox: Backbone.View.extend({
 
 			tagName: "div",
@@ -242,6 +243,70 @@ function initSS() {
 			remove: function() {
 				$(this.el).remove();
 			}
+		}),
+
+		// SignUpBox is an overlay UI view that handles the UX for a sign up
+		// TODO: Add an overlay message acknowledging success
+		SignUpBox: Backbone.View.extend({
+
+			tagName: "div",
+
+			events: { 'click #ok': 'ok', 'click #cancel': 'cancel' },
+
+			initialize: function() {
+				_.bindAll(this, 'ok', 'cancel', 'render', '_signUpOk', '_signUpErr');
+				this.model = ss.vars.user;
+			},
+			
+			render: function() {
+				$(this.el).html($("#ss-signupbox-tmpl").tmpl());
+				return this;
+			},
+
+			ok: function() {
+				if (this.busy()) return;
+				this.busy(true);
+				var n = this.$("#n").val()
+				var e = this.$("#e").val()
+				var u = this.$("#u").val()
+				var p = this.$("#p").val()
+				this.model.signOut();
+				this.model.signUp(n, e, u, p, this._signUpOk, this._signUpErr);
+			},
+
+			cancel: function() { 
+				this.busy(false);
+				this.cancelled = true;
+				this.remove(); 
+			},
+
+			busy: function(on) {
+				if (_.isUndefined(on)) {
+					return this._busy == true;
+				}
+				if (on) {
+					this._busy = true;
+					this.$('#ok').attr('disabled', true);
+				} else {
+					this._busy = false;
+					this.$('#ok').removeAttr('disabled');
+				}
+			},
+
+			_signUpOk: function() {
+				this.remove();
+			},
+
+			_signUpErr: function() {
+				this.busy(false);
+				if (!this.cancelled) {
+					this.$('#err0').show();
+				}
+			},
+
+			remove: function() {
+				$(this.el).remove();
+			}
 		})
 	};
 
@@ -263,6 +328,7 @@ function initSS() {
 
 		// showSignUpBox shows UI that prompts the user to register
 		showSignUpBox: function() {
+			$("body").prepend((new ss.view.SignUpBox()).render().el);
 		}
 	};
 

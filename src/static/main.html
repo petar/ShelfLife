@@ -65,15 +65,19 @@
 		<div class="ss-glass"></div>
 		<div class="ss-screen">
 			<div class="ss-simple-form">
-				<h2>Register</h2>
+				<h2>Register an account</h2>
 				<table>
 					<tr><td class="label">Name:</td><td><input type="text" id="n" /></td></tr>
 					<tr><td class="label">Email:</td><td><input type="text" id="e" /></td></tr>
-					<tr><td class="label">Username:</td><td><input type="text" id="l" /></td></tr>
+					<tr><td class="label">Username:</td><td><input type="text" id="u" /></td></tr>
 					<tr><td class="label">Password:</td><td><input type="password" id="p" /></td></tr>
-					<tr><td></td><td class="submit">
+					<tr><td colspan="2" class="submit">
 						<span id="ok" class="button">Sign me up!</span>&nbsp;
 						<span id="cancel" class="button">Never mind</span>
+					</td></tr>
+					<tr><td colspan=2 class="msg">
+							<span id="err0" class="errmsg" style="display: none">Sign up failed. A user
+							with identical username of email may already exist.</span>
 					</td></tr>
 				</table>
 			</div>
