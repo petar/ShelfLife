@@ -35,6 +35,15 @@ div.ss-screen {
 .ss-screen .footnote {
 	font: 9px $main-font;
 }
+.ss-screen .errmsg {
+	font: 15px $main-font;
+	color: #c04;
+}
+
+.ss-screen [disabled] {
+	background: #ccc;
+	color: #eee;
+}
 
 
 // ss-simple-form is a simple form with one column of fields
@@ -50,6 +59,7 @@ div.ss-screen {
 	text-align: right; 
 }
 .ss-simple-form td.submit { text-align: center; }
+.ss-simple-form td.msg { text-align: center; }
 .ss-simple-form td { padding: 10px; }
 .ss-simple-form .button {
 	font: 13px/20px $main-font;

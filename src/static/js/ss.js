@@ -202,15 +202,30 @@ function initSS() {
 			},
 
 			ok: function() {
-				// disable submit button
+				if (this.busy()) return;
+				this.busy(true);
 				var u = this.$("#u").val()
 				var p = this.$("#p").val()
 				this.model.signIn(u, p, this._signInOk, this._signInErr);
 			},
 
 			cancel: function() { 
+				this.busy(false);
 				this.cancelled = true;
 				this.remove(); 
+			},
+
+			busy: function(on) {
+				if (_.isUndefined(on)) {
+					return this._busy == true;
+				}
+				if (on) {
+					this._busy = true;
+					this.$('#ok').attr('disabled', true);
+				} else {
+					this._busy = false;
+					this.$('#ok').removeAttr('disabled');
+				}
 			},
 
 			_signInOk: function() {
@@ -218,10 +233,10 @@ function initSS() {
 			},
 
 			_signInErr: function() {
+				this.busy(false);
 				if (!this.cancelled) {
-					// XXX show msg
+					this.$('#err0').show();
 				}
-				// re-enable submit button
 			},
 
 			remove: function() {
