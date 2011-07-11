@@ -1,23 +1,19 @@
-$ss-bar-height: 27px;
-
-@mixin ss-bar-font {
-	//font: 13px/27px SSFace;
-	font: 13px/27px Verdana;
-}
-
+// bar
 div#ss-bar {
-	@include ss-bar-font;
-	height: $ss-bar-height;
+	font: 13px/27px Verdana;
+	height: 27px;
 	background: #0af;
 	vertical-align: center;
 	@include drop-shadow(rgba(0, 0, 0, 0.3));
 }
 
+// bar widget
 div#ss-bar > div {
 	height: 100%;
 	float: right;
 }
 
+// bar widget's horizontal menu
 div#ss-bar > div > ol {
 	display: block;
 	padding: 0;
@@ -30,6 +26,11 @@ div#ss-bar > div > ol > li {
 	padding: 0;
 	margin: 0;
 }
+
+div#ss-bar > div > ol > li#sign-in { display: none; }
+div#ss-bar > div > ol > li#sign-name { display: none; }
+div#ss-bar > div > ol > li#sign-out { display: none; }
+div#ss-bar > div > ol > li#sign-up { display: none; }
 
 @mixin ss-box-base {
 	color: #eff;

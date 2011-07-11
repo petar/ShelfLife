@@ -22,52 +22,67 @@
 
   <body>
 
-	  <div id="ss-bar">
-		  <div id="signin">
-			  <ol>
-				  <li><span class="ss-box">Petar Maymounkov</span></li>
-				  <li><span class="ss-box-sep">|</span></li>
-				  <li><a class="boxing" href="?"><span class="ss-box-h">Sign out</span></a></li>
-				  <li>&nbsp;</li>
-			  </ol>
-		  </div>
-	  </div>
-
-	  <div> Your content here! </div>
-
-	<!-- div class="ss-glass" style="visibility: visible"></div -->
-
-	<!-- sign in box -->
-	<!-- div class="ss-screen">
-		<div class="ss-simple-form">
-			<h2>Sign in</h2>
-			<table>
-				<tr><td class="label">Username:</td><td><input type="text" id="u" /></td></tr>
-				<tr><td class="label">Password:</td><td><input type="password"
-						id="p" /><br><a class="footnote" href="">Forgot my password</a></td></tr>
-				<tr><td></td><td class="submit"><a class="button" href="">Sign in</a></td></tr>
-			</table>
+	<script id="ss-bar-tmpl" type="text/x-jquery-tmpl">
+		<div id="ss-bar">
+			<div>
+				<ol>
+					<li id="sign-in"><a class="boxing"
+						href="javascript:ss.ui.showSignInBox()"><span class="ss-box-h">Sign in</span></a></li>
+					<li id="sign-name"><span class="ss-box"></span></li>
+					<li><span class="ss-box-sep">|</span></li>
+					<li id="sign-out"><a class="boxing"
+						href="javascript:ss.vars.user.signOut()"><span class="ss-box-h">Sign out</span></a></li>
+					<li id="sign-up"><a class="boxing"
+						href="javascript:ss.ui.showSignUpBox()"><span class="ss-box-h">Sign up</span></a></li>
+					<li>&nbsp;</li>
+				</ol>
+			</div>
 		</div>
-	</div -->
+	</script>
 
-	<!-- sign up box -->
-	<!-- div class="ss-screen">
-		<div class="ss-simple-form">
-			<h2>Register</h2>
-			<table>
-				<tr><td class="label">Name:</td><td><input type="text" id="n" /></td></tr>
-				<tr><td class="label">Email:</td><td><input type="text" id="e" /></td></tr>
-				<tr><td class="label">Username:</td><td><input type="text" id="l" /></td></tr>
-				<tr><td class="label">Password:</td><td><input type="password" id="p" /></td></tr>
-				<tr><td></td><td class="submit"><a class="button" href="">Sign me up!</a></td></tr>
-			</table>
+	<script id="ss-glass-tmpl" type="text/x-jquery-tmpl">
+		<div class="ss-glass"></div>
+	</script>
+
+	<script id="ss-signinbox-tmpl" type="text/x-jquery-tmpl">
+		<div class="ss-glass"></div>
+		<div class="ss-screen">
+			<div class="ss-simple-form">
+				<h2>Sign in</h2>
+				<table>
+					<tr><td class="label">Username:</td><td><input type="text" id="u" /></td></tr>
+					<tr><td class="label">Password:</td><td><input type="password" id="p" /><br>
+						<a class="footnote" href="">Forgot my password</a></td></tr>
+					<tr><td></td><td class="submit"><a class="button" href="">Sign in</a></td></tr>
+				</table>
+			</div>
 		</div>
-	</div -->
+	</script>
 
+	<script id="ss-signupbox-tmpl" type="text/x-jquery-tmpl">
+		<div class="ss-screen">
+			<div class="ss-simple-form">
+				<h2>Register</h2>
+				<table>
+					<tr><td class="label">Name:</td><td><input type="text" id="n" /></td></tr>
+					<tr><td class="label">Email:</td><td><input type="text" id="e" /></td></tr>
+					<tr><td class="label">Username:</td><td><input type="text" id="l" /></td></tr>
+					<tr><td class="label">Password:</td><td><input type="password" id="p" /></td></tr>
+					<tr><td></td><td class="submit"><a class="button" href="">Sign me up!</a></td></tr>
+				</table>
+			</div>
+		</div>
+	</script>
+
+	<!-- insert this code in your pages -->
 	<script type="text/javascript" src="/s/js/x/underscore.js"></script>
 	<script type="text/javascript" src="/s/js/x/jquery.js"></script>
+	<script type="text/javascript" src="/s/js/x/jquery.tmpl.js"></script>
 	<script type="text/javascript" src="/s/js/x/json2.js"></script>
 	<script type="text/javascript" src="/s/js/x/backbone.js"></script>
 	<script type="text/javascript" src="/s/js/ss.js"></script>
+	<script type="text/javascript">
+		ss.ui.showUserBar($("body"));
+	</script>
 </body>
 </html>

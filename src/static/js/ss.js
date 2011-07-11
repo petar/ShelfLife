@@ -107,15 +107,6 @@
 		}
 	};
 
-	// ss.view contains all backbone.js views for various UI elements
-	ss.view = {
-		
-		// SignIn is the sign in/up/out pannel
-		SignIn: Backbone.View.extend({
-			// XXX
-		}),
-	};
-
 	// ss.model contains backbone.js models for the various functionalities
 	ss.model = {
 
@@ -150,15 +141,84 @@
 			// signUp registers a new user with the backend system
 			signUp: function(name, email, login, password, okcb, ecb) {
 				ss.login.signUp(name, email, login, password, okcb, ecb);
+			},
+
+			whoAmI: function() {
+				return ss.login.whatIsMyName();
 			}
 
 		})
 	
 	};
 
+	// ss.view contains all backbone.js views for various UI elements
+	ss.view = {
+		
+		// UserBar is the view of the navigation and user management bar on top of the page
+		UserBar: Backbone.View.extend({
+
+			tagName: "div",
+
+			initialize: function() {
+				this.model = ss.vars.user;
+				_.bindAll(this, 'render');
+				this.model.bind('change', this.render);
+			},
+			
+			render: function() {
+				$(this.el).html($("#ss-bar-tmpl").tmpl());
+				var name = this.model.whoAmI();
+				console.log(name);
+				if (!_.isNull(name)) {
+					this.$("#sign-in").css("display", "none");
+					this.$("#sign-up").css("display", "none");
+					this.$("#sign-name").text(name);
+					this.$("#sign-name").css("display", "inline-block");
+					this.$("#sign-out").css("display", "inline-block");
+				} else {
+					this.$("#sign-name").css("display", "none");
+					this.$("#sign-out").css("display", "none");
+					this.$("#sign-in").css("display", "inline-block");
+					this.$("#sign-up").css("display", "inline-block");
+				}
+				return this;
+			}
+		}),
+
+		SignInBox: Backbone.View.extend({
+
+			tagName: "div",
+
+			initialize: function() {
+				this.model = ss.vars.user;
+			},
+			
+			render: function() {
+				$("#ss-signinbox-tmpl").tmpl().prependTo(this.el);
+				return this;
+			}
+		})
+	};
+
 	ss.vars = {
-		// theUser is the unique global User model
-		User: new ss.model.User
+		// user is the unique global User model, an instance of ss.model.User
+		user: new ss.model.User
+	};
+
+	ss.ui = {
+		// showUserBar inserts the user bar UI element inside el
+		showUserBar: function(el) {
+			$(el).prepend((new ss.view.UserBar()).render().el);
+		},
+
+		// showSignInBox shows UI that prompts the user to sign in
+		showSignInBox: function() {
+			$("body").prepend((new ss.view.SignInBox()).render().el);
+		},
+
+		// showSignUpBox shows UI that prompts the user to register
+		showSignUpBox: function() {
+		}
 	};
 
 }).call(this);
