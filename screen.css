@@ -1,13 +1,16 @@
 * {
 	font: 14px/20px verdana, sans-serif;
+	color: #333;
 }
 
 h1, h2, h3, h4, h5 {
 	font-family: Georgia, sans-serif;
+	color: black;
 }
 
 h1 { font-size: 30px; }
 h2 { font-size: 23px; }
+h2 { font-size: 19px; }
 
 div.content {
 	margin: auto auto;
