@@ -87,10 +87,28 @@
 	in your page. For example, the following JS snippet inserts the User Authentication Bar
 	at the top of your page (much like the user bar on top of Google+):
 <pre>
+&lt;script type="text/javascript"&gt;
 	initSociability(function() {
 		ss.ui.showUserBar($("body"));
 	}, function() { console.log("Problem initializing Sociability.") });
+&lt;/script&gt;
 </pre>
+	<p>To start using Sociability, you need to make a call to <code>initSociability</code>.
+	This function initializes the framework. Since initialization involves fetching various
+	resources (like UI templates) from the server, <code>initSociability</code> notifies you
+	asynchronously when it is ready. It takes two parameters, the first one is callback
+	for the event of success, and the second one is a callback for the event of failure.
+	Currently, neither callback receives any arguments.
+	</p>
+
+	<p>Once the framework is initialized, the example above inserts the User Bar by making a
+	function call to <code>ss.ui.showUserBar</code>. This function takes a single parameter,
+	which is the DOM element where the User Bar will be inserted.
+	</p>
+
+	<p>With this code alone, you have attached the entire user tracking and authentication
+	functionality to your web pages.
+	</p>
 
 	</div>
 </body>
