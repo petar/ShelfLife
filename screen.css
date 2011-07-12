@@ -1,0 +1,8 @@
+* {
+	font: 13px/20px verdana, sans-serif;
+}
+
+div.content {
+	margin: auto auto;
+	width: 800px;
+}
