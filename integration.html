@@ -44,7 +44,10 @@
 		<h3>Inserting sociability in your pages</h3>
 
 		<p>
-		Making your pages sociable involves a few easy steps. 
+		Making your pages sociable involves a few easy steps. You would have to include the
+		Sociability stylesheet as well as a few JavaScript libraries. Beyond this, you
+		can drop in Sociability UI components via short JavaScript calls. We'll cover all
+		these in detail next.
 		</p>
 
 		<p>
@@ -56,6 +59,19 @@
 </pre>
 		<p>We've made a best effort to make sure that these stylesheets do not mess with
 		the rest of your content.</p>
+
+		<p>Next, you will include the needed JS libraries. It is a good practice to include
+		JS scripts at the end of your pages, just before the closing tag
+		<code>&lt;/body</code>, however you can also include these following lines in the
+		<code>&lt;head&gt;</code> section if you prefer:
+<pre>
+	&lt;script type="text/javascript" src="/s/js/x/jquery.js"&gt;&lt;/script&gt;
+	&lt;script type="text/javascript" src="/s/js/x/underscore.js"&gt;&lt;/script&gt;
+	&lt;script type="text/javascript" src="/s/js/x/jquery.tmpl.js"&gt;&lt;/script&gt;
+	&lt;script type="text/javascript" src="/s/js/x/json2.js"&gt;&lt;/script&gt;
+	&lt;script type="text/javascript" src="/s/js/x/backbone.js"&gt;&lt;/script&gt;
+	&lt;script type="text/javascript" src="/s/js/ss.js"&gt;&lt;/script&gt;
+</pre>
 	</div>
 </body>
 </html>
