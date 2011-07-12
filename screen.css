@@ -33,7 +33,7 @@ a.anchor, a.anchor:link, a.anchor:visited, a.anchor:hover {
 }
 
 code, pre {
-	font: 16px/23px Courier, monospace;
+	font: 15px/23px Courier, monospace;
 	background: #ffe;
 	padding: 5px;
 	-webkit-border-radius: 3px;
@@ -43,7 +43,6 @@ code, pre {
 }
 
 pre {
-	margin: 50px;
 }
 
 h1, h2, h3, h4, h5 {
@@ -52,7 +51,7 @@ h1, h2, h3, h4, h5 {
 }
 
 h1 { font-size: 38px; }
-h2 { font-size: 30px; font-weight: bold; color: #07c; }
+h2 { font-size: 30px; font-weight: bold; color: #02c; }
 h3 { font-size: 22px; font-style: italic; color: #999; }
 
 div.content {
