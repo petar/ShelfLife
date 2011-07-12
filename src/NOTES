@@ -2,7 +2,9 @@ SHORT TERM
 ==========
 
 * Integration documentation
-* Make system that prepares static directory
+* Build
+	* Make system that prepares static directory
+	* Figure out theme conventions
 
 LONGER TERM
 ===========
