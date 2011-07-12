@@ -81,6 +81,17 @@
 	compatibility).
 	</p>
 
+	<h3>Using Sociability</h3>
+
+	<p>Now you are ready to start using Sociability and insert Sociability UI components 
+	in your page. For example, the following JS snippet inserts the User Authentication Bar
+	at the top of your page (much like the user bar on top of Google+):
+<pre>
+	initSociability(function() {
+		ss.ui.showUserBar($("body"));
+	}, function() { console.log("Problem initializing Sociability.") });
+</pre>
+
 	</div>
 </body>
 </html>
