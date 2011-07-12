@@ -13,7 +13,7 @@ a {
 	border-radius: 4px;
 
 	margin: 0 0 3px 0;
-	background: #dedede;
+	background: #e8e8e8;
 	text-shadow: none;
 }
 a:hover { 
@@ -47,8 +47,8 @@ h1, h2, h3, h4, h5 {
 	color: black;
 }
 
-h1 { font-size: 42px; color: #0bc; }
-h2 { font-size: 26px; }
+h1 { font-size: 38px; }
+h2 { font-size: 30px; color: #0bc; }
 h3 { font-size: 22px; font-style: italic; color: #999; }
 
 div.content {
