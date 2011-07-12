@@ -1,14 +1,21 @@
+SHORT TERM
+==========
+
+* Integration documentation
+* Make system that prepares static directory
+
+LONGER TERM
+===========
+
 * login -> username (?)
 	* add signinUserOrEmail
 * cli
-	* login
 	* follow
 	* like
 * html demo
 	* add modernizr
 	* add guides.js
 
-* add PUT, POST to RPC system
 * add url-per-resource scheme
 
 * notification system

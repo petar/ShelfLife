@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"mime"
 	"os"
 	"github.com/petar/GoHTTP/server"
 	"github.com/petar/GoHTTP/server/rpc"
@@ -40,6 +41,7 @@ func main() {
 	}
 
 	// Attach static file server
+	mime.AddExtensionType(".x-jquery-tmpl", "text/x-jquery-tmpl")
 	if *flagStatic != "" {
 		srv.AddSub("/s/", static.NewStaticSub(*flagStatic))	
 	}

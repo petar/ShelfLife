@@ -1,5 +1,4 @@
-function initSS() {
-	console.log('Loading sociability...');
+function _init(okcb, errcb) {
 
 	// Save a reference to the global object
 	var root = this;
@@ -37,6 +36,21 @@ function initSS() {
 		// Code taken from http://www.quirksmode.org/js/cookies.html
 		eraseCookie: function(name) {
 			ss.util.createCookie(name, "", -1);
+		},
+
+		// loadTemplate loads jquery-style templates from the given URL and
+		// inserts them into the DOM
+		loadTemplate: function(url, okcb, errcb) {
+			$.ajax({
+				dataType: "html",
+				error: errcb,
+				success: function(data) {
+					$('<div>').html(data).appendTo($('body'));
+					if (_.isFunction(okcb)) okcb();
+				},
+				type: "GET",
+				url: url
+			});
 		}
 	};
 
@@ -332,10 +346,13 @@ function initSS() {
 		}
 	};
 
+	// load the UI templates
+	ss.util.loadTemplate('/s/ui.x-jquery-tmpl', okcb, errcb);
 }
 
-function loadRequired(cb) {
-	$.getScript('js/x/backbone.js', cb);
+// initSociability initializes the sociability framework.
+// Since initialization requires some ajax calls, the respective callbacks
+// are called when the initialization has truly completed.
+function initSociability(okcb, errcb) {
+	$(_init.call(this, okcb, errcb));
 }
-
-$(initSS.call(this));
