@@ -1,5 +1,5 @@
 * {
-	font: 14px/20px verdana, sans-serif;
+	font: 14px/23px verdana, sans-serif;
 	color: #333;
 }
 
@@ -8,9 +8,9 @@ h1, h2, h3, h4, h5 {
 	color: black;
 }
 
-h1 { font-size: 30px; }
-h2 { font-size: 23px; }
-h2 { font-size: 19px; }
+h1 { font-size: 38px; }
+h2 { font-size: 26px; }
+h2 { font-size: 22px; }
 
 div.content {
 	margin: auto auto;
