@@ -4,6 +4,34 @@
 	background: #fff;
 }
 
+a { 
+	font: inherit; color:inherit; text-decoration: none; 
+	padding: 0.2em 0.4em;
+
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	border-radius: 4px;
+
+	margin: 0 0 3px 0;
+	background: #dedede;
+	text-shadow: none;
+}
+a:hover { 
+	background: #000;
+	color: #fff;
+}
+a:link { }
+a:visited { }
+a.anchor, a.anchor:link, a.anchor:visited, a.anchor:hover {
+	color: inherit;
+	border: inherit;
+	padding: inherit;
+	margin: inherit;
+	background: inherit;
+	text-decoration: inherit;
+	text-shadow: inherit;
+}
+
 code {
 	font: 16px/23px Courier, monospace;
 	background: #ffe;
@@ -19,7 +47,7 @@ h1, h2, h3, h4, h5 {
 	color: black;
 }
 
-h1 { font-size: 38px; }
+h1 { font-size: 42px; color: #0bc; }
 h2 { font-size: 26px; }
 h3 { font-size: 22px; font-style: italic; color: #999; }
 
