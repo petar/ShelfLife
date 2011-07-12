@@ -39,12 +39,11 @@ code, pre {
 	-webkit-border-radius: 3px;
 	-moz-border-radius: 3px;
 	border-radius: 3px;
-	border: 1px solid #cca;
+	border: 1px dotted #cca;
 }
 
 pre {
 	margin: 50px;
-	width: 100%;
 }
 
 h1, h2, h3, h4, h5 {
