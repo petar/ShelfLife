@@ -64,6 +64,7 @@
 		JS scripts at the end of your pages, just before the closing tag
 		<code>&lt;/body</code>, however you can also include these following lines in the
 		<code>&lt;head&gt;</code> section if you prefer:
+		</p>
 <pre>
 	&lt;script type="text/javascript" src="/s/js/x/jquery.js"&gt;&lt;/script&gt;
 	&lt;script type="text/javascript" src="/s/js/x/underscore.js"&gt;&lt;/script&gt;
@@ -72,6 +73,14 @@
 	&lt;script type="text/javascript" src="/s/js/x/backbone.js"&gt;&lt;/script&gt;
 	&lt;script type="text/javascript" src="/s/js/ss.js"&gt;&lt;/script&gt;
 </pre>
+	<p>
+	Note that the main sociability script <code>/s/js/ss.js</code> depends on a few
+	standard libraries, included before it. If you already include any of these libraries,
+	you can skip the corresponding line (above). You will notice that all external libraries
+	used by Sociability are served by the Sociability server (for speed and version
+	compatibility).
+	</p>
+
 	</div>
 </body>
 </html>
