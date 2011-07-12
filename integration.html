@@ -24,8 +24,20 @@
 		<h3>Configuring your server</h3>
 
 		<p>The Sociability server serves HTTP API calls under the URL <code>/api/</code> and
-		some static resources (like style sheets and UI templates) under the base
-		<code>/s/</code>. 
+		some static resources (like style sheets and UI templates) under the URL
+		<code>/s/</code>. The client-side JavaScript of Sociability (the script
+		<code>/s/js/ss.js</code>) makes various AJAX calls to the API in order to
+		perform its duties.
+		</p>
+
+		<p>Let's say that your web pages are served under the hostname
+		<code>dpla.gov</code>. For security considerations, browsers don't allow
+		AJAX calls going to domains other than the domain where the web page came from
+		(in this case <code>dpla.gov</code>). This is why, even though the Sociability
+		server may run on a separate machine, your web server (perhaps something like Apache) 
+		or your front HTTP reverse proxy (perhaps something like NGINX) should be configured
+		to forward all requests to URLS of the form <code>dpla.gov/api/...</code> and
+		<code>dpla.gov/s/...</code> to the host that runs the Sociability server.
 		</p>
 
 		<h3>Inserting sociability in your pages</h3>
