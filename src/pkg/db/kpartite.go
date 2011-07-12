@@ -10,6 +10,7 @@ import (
 	"os"
 	"rand"
 	"sync"
+	"time"
 	"github.com/petar/ShelfLife/thirdparty/bson"
 	"github.com/petar/ShelfLife/thirdparty/mgo"
 )
@@ -174,6 +175,7 @@ func rewriteQuery(q interface{}) interface{} {
 }
 
 func chooseID() bson.ObjectId {
+	rand.Seed(time.Nanoseconds())
 	b := make([]byte, IDLEN)
 	for i := 0; i < IDLEN/4; i++ {
 		u := rand.Uint32()
