@@ -29,15 +29,18 @@ func main() {
 	fmt.Fprintf(os.Stderr, "ShelfLife Server — 2011\n")
 	flag.Parse()
 
-	srv, err := server.NewServerEasy(*flagBind)
-	if err != nil {
-		log.Fatalf("Problem binding server: %s\n", err)
-	}
-
 	// Connect to database
+	log.Printf("Connecting to DB ...")
 	db, err := db.NewDb(*flagDbAddr, "shelflife")
 	if err != nil {
 		log.Fatalf("Problem connecting to db: %s", err)
+	}
+
+	// Start web server
+	log.Printf("Starting web server ...")
+	srv, err := server.NewServerEasy(*flagBind)
+	if err != nil {
+		log.Fatalf("Problem binding server: %s\n", err)
 	}
 
 	// Attach static file server
@@ -53,7 +56,7 @@ func main() {
 	}
 	srv.AddSub("/api/", rpcsub)
 
-	fmt.Printf("· Serving %d requests in parallel ...\n", *flagParallel)
+	log.Printf("Serving %d requests in parallel ...\n", *flagParallel)
 	srv.Launch(*flagParallel)
 	<-make(chan int)
 }
