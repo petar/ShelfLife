@@ -6,6 +6,7 @@ include $(GOROOT)/src/Make.inc
 
 TARG=shelf-server
 GOFILES=\
+	ctrlc.go\
 	main.go\
 
 include $(GOROOT)/src/Make.cmd

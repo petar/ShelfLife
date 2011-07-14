@@ -28,6 +28,7 @@ var (
 func main() {
 	fmt.Fprintf(os.Stderr, "ShelfLife Server — 2011\n")
 	flag.Parse()
+	InstallCtrlCPanic()
 
 	// Connect to database
 	log.Printf("Connecting to DB ...")
