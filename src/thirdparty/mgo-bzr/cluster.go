@@ -369,14 +369,15 @@ restart:
 func (cluster *mongoCluster) AcquireSocket(slaveOk bool, syncTimeout int64) (s *mongoSocket, err os.Error) {
 	started := time.Nanoseconds()
 	for {
-		cluster.RLock()
+		// Write lock only due to the serverSynced Cond below.
+		cluster.Lock()
 		for {
 			debugf("Cluster has %d known masters and %d known slaves.", cluster.masters.Len(), cluster.slaves.Len())
 			if !cluster.masters.Empty() || slaveOk && !cluster.slaves.Empty() {
 				break
 			}
 			if syncTimeout > 0 && time.Nanoseconds()-started > syncTimeout {
-				cluster.RUnlock()
+				cluster.Unlock()
 				return nil, os.NewError("no reachable servers")
 			}
 			log("Waiting for servers to synchronize...")
@@ -394,7 +395,7 @@ func (cluster *mongoCluster) AcquireSocket(slaveOk bool, syncTimeout int64) (s *
 			i := rand.Intn(cluster.slaves.Len())
 			server = cluster.slaves.Get(i)
 		}
-		cluster.RUnlock()
+		cluster.Unlock()
 
 		s, err = server.AcquireSocket()
 		if err != nil {
