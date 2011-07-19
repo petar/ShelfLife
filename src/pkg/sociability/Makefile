@@ -4,6 +4,7 @@ TARG=github.com/petar/ShelfLife/sociability
 GOFILES=\
 	api.go\
 	err.go\
+	like.go\
 	login.go\
 	pass.go\
 	sanitize.go\

@@ -7,6 +7,7 @@ package sociability
 import (
 	//"log"
 	"os"
+	"github.com/petar/ShelfLife/thirdparty/bson"
 	"github.com/petar/GoHTTP/http"
 	"github.com/petar/GoHTTP/server/rpc"
 	"github.com/petar/ShelfLife/thirdparty/authcookie"
@@ -31,7 +32,7 @@ func (a *API) SignInLogin(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	hpass, _ := args.QueryString("P")
 
 	// Fetch user for this login
-	u, err := a.db.FindUserByLogin(login)
+	u, _, err := a.db.FindUserByLogin(login)
 	if err != nil {
 		return ErrDb
 	}
@@ -83,37 +84,37 @@ func (a *API) newUserInfoCookie(u *db.UserDoc) *http.Cookie {
 // verifySignInCookie checks that cookie is a valid authentication cookie,
 // and if so returns the user who is logged in with this cookie, or nil otherwise.
 // A non-nil error indicates a technical problem.
-func (a *API) verifySignInCookie(cookie *http.Cookie) (user *db.UserDoc, err os.Error) {
+func (a *API) verifySignInCookie(cookie *http.Cookie) (user *db.UserDoc, uid bson.ObjectId, err os.Error) {
 	if cookie == nil || cookie.Name != "SS-UserAuth" {
-		return nil, nil
+		return nil, "", nil
 	}
 	login := authcookie.Login(cookie.Value, a.loginSecret)
 	if login, err = SanitizeLogin(login); err != nil {
-		return nil, nil
+		return nil, "", nil
 	}
-	user, err = a.db.FindUserByLogin(login)
+	user, uid, err = a.db.FindUserByLogin(login)
 	if err != nil {
-		return nil, ErrDb
+		return nil, "", ErrDb
 	}
-	return user, nil
+	return user, uid, nil
 }
 
-func (a *API) whoAmI(args *rpc.Args) (user *db.UserDoc, err os.Error) {
+func (a *API) whoAmI(args *rpc.Args) (user *db.UserDoc, uid bson.ObjectId, err os.Error) {
 	for _, cookie := range args.Cookies {
-		user, err = a.verifySignInCookie(cookie)
+		user, uid, err = a.verifySignInCookie(cookie)
 		if err != nil {
-			return nil, err
+			return nil, uid, err
 		}
 		if user != nil {
-			return user, nil
+			return user, uid, nil
 		}
 	}
-	return nil, nil
+	return nil, "", nil
 }
 
 // WhoAmI returns the login of the currently signed user
 func (a *API) WhoAmI(args *rpc.Args, r *rpc.Ret) (err os.Error) {
-	user, err := a.whoAmI(args)
+	user, _, err := a.whoAmI(args)
 	if err != nil {
 		return err
 	}
@@ -184,7 +185,7 @@ func (a *API) SignUp(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	hpass, _ := args.QueryString("P")
 
 	// Check that a user like this doesn't already exist
-	u, err := a.db.FindUserByLogin(login)
+	u, _, err := a.db.FindUserByLogin(login)
 	if err != nil {
 		return ErrDb
 	}
@@ -222,7 +223,7 @@ func (a *API) IsLoginAvailable(args *rpc.Args, r *rpc.Ret) os.Error {
 	if login, err = SanitizeLogin(login); err != nil {
 		return rpc.ErrArg
 	}
-	u, err := a.db.FindUserByLogin(login)
+	u, _, err := a.db.FindUserByLogin(login)
 	if err != nil {
 		return ErrDb
 	}

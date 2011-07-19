@@ -41,8 +41,8 @@ func (db *Db) AddUser(u *UserDoc) (bson.ObjectId, os.Error) {
 }
 
 type userFind struct {
-	ID    string  "_id"
-	Value UserDoc "value"
+	ID    bson.ObjectId  "_id"
+	Value UserDoc        "value"
 }
 
 // FindUserByEmail looks up a user record with the given email.
@@ -68,19 +68,19 @@ func (db *Db) FindUserByEmail(email string) (u *UserDoc, err os.Error) {
 // FindUserByLogin looks up a user record with the given login (i.e. username).
 // A non-nil error indicates a connectivity problem. 
 // A missing user returns u == nil and err == nil.
-func (db *Db) FindUserByLogin(login string) (u *UserDoc, err os.Error) {
+func (db *Db) FindUserByLogin(login string) (u *UserDoc, uid bson.ObjectId, err os.Error) {
 	q, err := db.kp.FindNode("user", bson.D{{"login", login}})
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	uf := &userFind{}
 	err = q.One(uf)
 	if err == mgo.NotFound {
-		return nil, nil
+		return nil, "", nil
 	}
 	if err != nil {
 		log.Printf("DB error: %s\n", err)
-		return nil, err
+		return nil, "", err
 	}
-	return &uf.Value, nil
+	return &uf.Value, uf.ID, nil
 }
