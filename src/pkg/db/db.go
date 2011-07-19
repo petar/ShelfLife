@@ -28,7 +28,13 @@ func NewDb(addr, dbname string) (db *Db, err os.Error) {
 		s:  s,
 		kp: NewKPartite(dbname, s),
 	}
+	// Initialize user system
 	if err := db.initUser(); err != nil {
+		db.Close()
+		return nil, err
+	}
+	// Initialize like system
+	if err := db.initLike(); err != nil {
 		db.Close()
 		return nil, err
 	}

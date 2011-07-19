@@ -220,6 +220,21 @@ func (kp *KPartite) AddEdge(edgeType string, from, to bson.ObjectId, value inter
 	return ed.ID, et.C.Insert(ed)
 }
 
+func (kp *KPartite) AddOrReplaceEdge(edgeType string, from, to bson.ObjectId, value interface{}) (bson.ObjectId, os.Error) {
+	ed := &EdgeDoc{
+		ID:    kp.makeEdgeID(from, to),
+		From:  from,
+		To:    to,
+		Value: value,
+	}
+	et := kp.GetEdgeType(edgeType)
+	if et == nil {
+		return "", ErrArg
+	}
+	_, err := et.C.Upsert(bson.D{{"_id", ed.ID}}, ed)
+	return ed.ID, err
+}
+
 func (kp *KPartite) UpdateEdge(edgeType string, edgeID bson.ObjectId, value interface{}) os.Error {
 	et := kp.GetEdgeType(edgeType)
 	if et == nil {
@@ -230,6 +245,14 @@ func (kp *KPartite) UpdateEdge(edgeType string, edgeID bson.ObjectId, value inte
 
 func (kp *KPartite) UpdateEdgeAnchors(edgeType string, from, to bson.ObjectId, value interface{}) os.Error {
 	return kp.UpdateEdge(edgeType, kp.makeEdgeID(from, to), value)
+}
+
+func (kp *KPartite) FindEdge(edgeType string, query interface{}) (*mgo.Query, os.Error) {
+	et := kp.GetEdgeType(edgeType)
+	if et == nil {
+		return nil, ErrType
+	}
+	return et.C.Find(rewriteQuery(query)), nil
 }
 
 func (kp *KPartite) IsEdge(edgeType string, from, to bson.ObjectId) (bool, os.Error) {
