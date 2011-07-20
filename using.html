@@ -20,9 +20,23 @@
 		</p>
 		<h3>Like button</h3>
 
-		<p>Before we can discuss the Like button we need to discuss social objects.
-		</p>
+		<p>Before we can look at the Like button we need to discuss social objects.
+		The like system is designed on the premises that users can "like" objects. These
+		objects are treated as abstract entities, identified by a unique and unchanging
+		string identifier. The reason for this design choice is so to enable the like system
+		to co-exist with objects that might not be a part of Sociability itself, rather a
+		part of your pre-existing site logic. Because these objects are "external" to
+		Sociability, they are called <em>foreign objects</em> and their respective
+		identifiers are called <em>foreign IDs</em>.
+		As an example, consider a library web site where a book is a natural object (that is
+		not known to Sociability per se). You (the developer) can choose some permanent
+		book identifier, like the ISBN number, as the foreign ID for each book.</p>
 
+		<p>Once you make up your mind on the structure of your foreign IDs, inserting a like
+		button is quite simple. All you have to do is add the following HTML markup at the
+		location in the page where you want to the like button to appear:</p>
+
+		<pre><div class="inject-like" fid="isbn:123456789-0"></div></pre>
 
 	</div>
 </body>
