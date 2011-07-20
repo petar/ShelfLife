@@ -33,10 +33,32 @@
 		book identifier, like the ISBN number, as the foreign ID for each book.</p>
 
 		<p>Once you make up your mind on the structure of your foreign IDs, inserting a like
-		button is quite simple. All you have to do is add the following HTML markup at the
+		button is quite simple. You need to add the following HTML markup at the
 		location in the page where you want to the like button to appear:</p>
 
-		<pre>&lt;div class="inject-like" fid="isbn:123456789-0"&gt;&lt;/div&gt;</pre>
+		<pre>    &lt;div class="inject-like" fid="isbn:123456789-0"&gt;&lt;/div&gt;</pre>
+
+		<p>In order to give you fine control over when the like buttons appear (as well as
+		to allow you to add like buttons dynamically), you need to call the function
+		<code>ss.ui.showLikeButtons()</code> explicitly for the like buttons to actually be injected at the
+		respective placeholder locations. Typically, the placeholders will be part of your
+		static HTML, in which case the invocation of this function should appear in your
+		page JavaScript init sequence. Borrowing from our previous example, your startup 
+		script might look something like this:
+		</p>
+<pre>
+&lt;script type="text/javascript"&gt;
+	initSociability(function() {
+		ss.ui.showUserBar($("body"));
+		ss.ui.showLikeButtons();
+	}, function() { console.log("Problem initializing Sociability.") });
+&lt;/script&gt;
+</pre>
+		<p>In advanced cases, whereby you add placeholder markup dynamically, you can make
+		a repeated call to <code>ss.ui.showLikeButtons()</code> which will populate the
+		newly added placeholders with like buttons without interfering with the like buttons
+		already present on the page.
+		</p>
 
 	</div>
 </body>
