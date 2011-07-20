@@ -1,2 +1,4 @@
 
+* remove injection tags after injection
+
 * wrap forms in FORM elements so that autocompletion works

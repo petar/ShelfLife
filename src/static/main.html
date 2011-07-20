@@ -21,9 +21,27 @@
     <link href="/s/vanilla-style/stylesheets/sociability.css" rel="stylesheet" type="text/css" />
     <!-- insert this END -->
 
+    <style>
+	    .content {
+		    font: 13px/27px Verdana;
+		    width: 800px;
+		    margin: auto auto;
+		    color: #555;
+	    }
+	    p { margin: 20px; }
+    </style>
+
 </head>
 
 <body>
+	
+	<div class="content">
+		<table style="margin-top: 100px;">
+			<tr><td style="width: 100px;"><div class="inject-button" fid="A"></div></td><td><p>Hello world! This is object A.</p></td></tr>
+			<tr><td><div class="inject-button" fid="B"></div></td><td><p>Foo bar! This is object B.</p></td></tr>
+		</table>
+	</div>
+
 	<!-- insert this BEGIN -->
 	<script type="text/javascript" src="/s/js/x/jquery.js"></script>
 	<script type="text/javascript" src="/s/js/x/underscore.js"></script>
@@ -34,6 +52,7 @@
 	<script type="text/javascript">
 		initSociability(function() {
 			ss.ui.showUserBar($("body"));
+			ss.ui.showLikeButtons();
 		}, function() { console.log("Problem initializing Sociability.") });
 	</script>
 	<!-- insert this END -->

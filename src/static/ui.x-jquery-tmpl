@@ -59,3 +59,9 @@
 		</div>
 	</div>
 </script>
+
+<script id="ss-like-tmpl" type="text/x-jquery-tmpl">
+	<div>
+		<span class="button like"><span id="action">(Un)like</span><br><span id="footnote" class="footnote">X likes</span></span>
+	</div>
+</script>

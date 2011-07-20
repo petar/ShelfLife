@@ -18,7 +18,7 @@ func (a *API) LikeInfo(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	}
 	likes, err := a.db.Likes(uid, fid)
 	if err != nil {
-		return err
+		likes = false
 	}
 	n, err := a.db.LikeCount(fid)
 	if err != nil {

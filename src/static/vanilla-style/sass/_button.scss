@@ -9,9 +9,9 @@
 	background: #0093ff;
 	color: #fff;
 	text-decoration: none !important;
-	-webkit-border-radius: 5px;
-	-moz-border-radius: 5px;
-	border-radius: 5px;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
 
 	//background-image: -webkit-gradient( linear, left top, left bottom, color-stop(0, #00AAFF), color-stop(1, #0077FF));
 	//background-image: -moz-linear-gradient( center top, #00AAFF 0%, #0077FF 100%);
@@ -43,4 +43,37 @@
 .button .green {
 	background-image: -webkit-gradient( linear, left top, left bottom, color-stop(0, #00cc00), color-stop(1, #00bf00));
 	background-image: -moz-linear-gradient( center top, #00ccaa 0%, #00ccaa 100%);
+}
+
+// like button style
+
+.button.like {
+	padding-left: 7px;
+	padding-right: 7px;
+	font: 13px Verdana;
+	background: #83b;
+	border: 1px solid #83b;
+}
+.button.like:hover {
+	border: 1px solid #417;
+}
+.button.like .footnote {
+	font: 11px Verdana;
+	color: #dce;
+}
+
+
+.button.unlike {
+	padding-left: 7px;
+	padding-right: 7px;
+	font: 13px Verdana;
+	background: #bbb;
+	border: 1px solid #888;
+}
+.button.unlike:hover {
+	border: 1px solid #444;
+}
+.button.unlike .footnote {
+	font: 11px Verdana;
+	color: #ddd;
 }

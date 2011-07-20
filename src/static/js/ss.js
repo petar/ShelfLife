@@ -122,6 +122,46 @@ function _init(okcb, errcb) {
 		}
 	};
 
+	ss.social = {
+		// likeInfo asynchronously returns the number of likes for an object identified
+		// by the string fid, and whether the currently logge user (if any) likes this
+		// object
+		likeInfo: function(fid, okcb, ecb) {
+			$.ajax({
+				data: { "FID": fid, },
+				dataType: "json",
+				error: errcb,
+				success: function(data) { okcb(data.Count, data.Likes === "1"); },
+				type: "GET",
+				url: "/api/ss/LikeInfo"
+			});
+		},
+
+		// like records that the currently logged user likes object fid
+		like: function(fid, okcb, ecb) {
+			$.ajax({
+				data: { "FID": fid, },
+				dataType: "json",
+				error: errcb,
+				success: okcb,
+				type: "GET",
+				url: "/api/ss/Like"
+			});
+		},
+
+		// unlike records that the currently logged user does not like object fid
+		unlike: function(fid, okcb, ecb) {
+			$.ajax({
+				data: { "FID": fid, },
+				dataType: "json",
+				error: errcb,
+				success: okcb,
+				type: "GET",
+				url: "/api/ss/Unlike"
+			});
+		}
+	};
+
 	// ss.model contains backbone.js models for the various functionalities
 	ss.model = {
 
@@ -259,6 +299,42 @@ function _init(okcb, errcb) {
 			}
 		}),
 
+		// LikeButton is the view of the like button
+		LikeButton: Backbone.View.extend({
+
+			tagName: "div",
+
+			initialize: function() {
+				this.model = ss.vars.user;
+				_.bindAll(this, 'render', 'update');
+				this.model.bind('change', this.render);
+				this.count = 0;
+				this.like = false;
+				ss.social.likeInfo(this.options.fid, this.update);
+			},
+
+			update: function(count, like) {
+				this.count = count;
+				this.like = like;
+				this.render();
+			},
+
+			render: function() {
+				$(this.el).html($("#ss-like-tmpl").tmpl());
+				if (!this.like) {
+					this.$("#action").addClass("like");
+					this.$("#action").removeClass("unlike");
+					this.$("#action").text("Like");
+				} else {
+					this.$("#action").addClass("unlike");
+					this.$("#action").removeClass("like");
+					this.$("#action").text("Unlike");
+				}
+				this.$("#footnote").text(this.count + " likes");
+				return this;
+			}
+		}),
+
 		// SignUpBox is an overlay UI view that handles the UX for a sign up
 		// TODO: Add an overlay message acknowledging success
 		SignUpBox: Backbone.View.extend({
@@ -343,6 +419,15 @@ function _init(okcb, errcb) {
 		// showSignUpBox shows UI that prompts the user to register
 		showSignUpBox: function() {
 			$("body").prepend((new ss.view.SignUpBox()).render().el);
+		},
+
+		// showLikeButtons replaces all <div class="inject-button" fid="..."></div> with a
+		// like button
+		showLikeButtons: function() {
+			_.each($(".inject-button"), function (q) {
+				$(q).removeClass("inject-button");
+				$(q).prepend((new ss.view.LikeButton({ "fid": $(q).attr("fid") })).render().el);
+			});
 		}
 	};
 
