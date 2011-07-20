@@ -5,6 +5,7 @@
 package db
 
 import (
+	//"log"
 	"os"
 	"github.com/petar/ShelfLife/thirdparty/bson"
 	"github.com/petar/ShelfLife/thirdparty/mgo"
@@ -47,7 +48,7 @@ func (db *Db) initLike() os.Error {
 		return err
 	}
 	index = mgo.Index{
-		Key: []string{"value.fid"},
+		Key: []string{"_id"},
 		Unique: true,
 		DropDups: false,
 		Background: false,
