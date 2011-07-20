@@ -60,8 +60,25 @@
 	</div>
 </script>
 
+<script id="ss-mustsigninbox-tmpl" type="text/x-jquery-tmpl">
+	<div class="ss-glass"></div>
+	<div class="ss-screen">
+		<div class="ss-simple-form">
+			<h2>Must sign in</h2>
+			<table>
+				<tr><td class="msg">The operation you attempted requires
+that you be signed in. Please use the bar on top of the page to sign in or register if you don't
+have an account yet.</td></tr>
+				<tr><td class="submit">
+					<span id="ok" class="button">OK</span>&nbsp;
+				</td></tr>
+			</table>
+		</div>
+	</div>
+</script>
+
 <script id="ss-like-tmpl" type="text/x-jquery-tmpl">
 	<div>
-		<span class="button like"><span id="action">(Un)like</span><br><span id="footnote" class="footnote">X likes</span></span>
+		<span id="wrap" class="button like"><span id="action">(Un)like</span><br><span id="footnote" class="footnote">X likes</span></span>
 	</div>
 </script>

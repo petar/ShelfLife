@@ -52,11 +52,15 @@ div.ss-screen {
 	margin-top: 100px;
 	text-align: center;
 }
-.ss-simple-form table { margin: 30px; }
+.ss-simple-form table { margin: 30px; width: 400px; }
 .ss-simple-form td { vertical-align: top; text-align: left; }
 .ss-simple-form td.label { 
 	font: 13px/33px $main-font;
 	text-align: right; 
+}
+.ss-simple-form td.msg { 
+	font: 13px/17px $main-font;
+	text-align: center; 
 }
 .ss-simple-form td.submit { text-align: center; }
 .ss-simple-form td.msg { text-align: center; }

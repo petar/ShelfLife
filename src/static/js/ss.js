@@ -304,13 +304,32 @@ function _init(okcb, errcb) {
 
 			tagName: "div",
 
+			events: { 'click': 'click' },
+
 			initialize: function() {
 				this.model = ss.vars.user;
-				_.bindAll(this, 'render', 'update');
-				this.model.bind('change', this.render);
+				_.bindAll(this, 'render', 'refresh', 'update', 'click');
+				this.model.bind('change', this.refresh);
 				this.count = 0;
 				this.like = false;
-				ss.social.likeInfo(this.options.fid, this.update);
+				this.refresh();
+			},
+
+			click: function() {
+				var name = this.model.whoAmI();
+				if (!_.isNull(name)) {
+					if (this.like) {
+						ss.social.unlike(this.options.fid, this.refresh, function() {});
+					} else {
+						ss.social.like(this.options.fid, this.refresh, function() {});
+					}
+				} else {
+					ss.ui.showMustSignInBox();
+				}
+			},
+
+			refresh: function() {
+				ss.social.likeInfo(this.options.fid, this.update, function(){});
 			},
 
 			update: function(count, like) {
@@ -322,12 +341,12 @@ function _init(okcb, errcb) {
 			render: function() {
 				$(this.el).html($("#ss-like-tmpl").tmpl());
 				if (!this.like) {
-					this.$("#action").addClass("like");
-					this.$("#action").removeClass("unlike");
+					this.$("#wrap").addClass("like");
+					this.$("#wrap").removeClass("unlike");
 					this.$("#action").text("Like");
 				} else {
-					this.$("#action").addClass("unlike");
-					this.$("#action").removeClass("like");
+					this.$("#wrap").addClass("unlike");
+					this.$("#wrap").removeClass("like");
 					this.$("#action").text("Unlike");
 				}
 				this.$("#footnote").text(this.count + " likes");
@@ -397,6 +416,32 @@ function _init(okcb, errcb) {
 			remove: function() {
 				$(this.el).remove();
 			}
+		}),
+
+		// MustSignInBox is an overlay UI view that informs the user they must sign in
+		MustSignInBox: Backbone.View.extend({
+
+			tagName: "div",
+
+			events: { 'click #ok': 'ok' },
+
+			initialize: function() {
+				_.bindAll(this, 'ok', 'render');
+				this.model = ss.vars.user;
+			},
+			
+			render: function() {
+				$(this.el).html($("#ss-mustsigninbox-tmpl").tmpl());
+				return this;
+			},
+
+			ok: function() { 
+				this.remove(); 
+			},
+
+			remove: function() {
+				$(this.el).remove();
+			}
 		})
 	};
 
@@ -421,11 +466,16 @@ function _init(okcb, errcb) {
 			$("body").prepend((new ss.view.SignUpBox()).render().el);
 		},
 
-		// showLikeButtons replaces all <div class="inject-button" fid="..."></div> with a
+		// showMustSignInBox shows UI that informs the user they must be signed in
+		showMustSignInBox: function() {
+			$("body").prepend((new ss.view.MustSignInBox()).render().el);
+		},
+
+		// showLikeButtons replaces all <div class="inject-like" fid="..."></div> with a
 		// like button
 		showLikeButtons: function() {
-			_.each($(".inject-button"), function (q) {
-				$(q).removeClass("inject-button");
+			_.each($(".inject-like"), function (q) {
+				$(q).removeClass("inject-like");
 				$(q).prepend((new ss.view.LikeButton({ "fid": $(q).attr("fid") })).render().el);
 			});
 		}
