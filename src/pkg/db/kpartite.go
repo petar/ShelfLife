@@ -134,14 +134,19 @@ func (kp *KPartite) GetEdgeTypes() []*EdgeType {
 // Node functions
 
 type NodeDoc struct {
-	ID    bson.ObjectId "_id"
-	Value interface{}   "value"
+	ID       bson.ObjectId  "_id"
+	Created  bson.Timestamp "created"
+	Modified bson.Timestamp "modified"
+	Value    interface{}    "value"
 }
 
 func (kp *KPartite) AddNode(nodeType string, value interface{}) (bson.ObjectId, os.Error) {
+	now := time.Nanoseconds()
 	nd := &NodeDoc{
-		ID:    chooseID(),
-		Value: value,
+		ID:       chooseID(),
+		Created:  bson.Timestamp(now),
+		Modified: bson.Timestamp(now),
+		Value:    value,
 	}
 	nt := kp.GetNodeType(nodeType)
 	if nt == nil {
@@ -155,7 +160,8 @@ func (kp *KPartite) UpdateNode(nodeType string, nodeID bson.ObjectId, value inte
 	if nt == nil {
 		return ErrType
 	}
-	return nt.C.Update(bson.D{{"_id", nodeID}}, bson.D{{"value", value}})
+	now := bson.Timestamp(time.Nanoseconds())
+	return nt.C.Update(bson.D{{"_id", nodeID}}, bson.D{{"value", value}, {"modified", now}})
 }
 
 func (kp *KPartite) FindNode(nodeType string, query interface{}) (*mgo.Query, os.Error) {
@@ -190,10 +196,12 @@ func chooseID() bson.ObjectId {
 // Edge functions
 
 type EdgeDoc struct {
-	ID    bson.ObjectId "_id"
-	From  bson.ObjectId "from"
-	To    bson.ObjectId "to"
-	Value interface{}   "value"
+	ID       bson.ObjectId  "_id"
+	Created  bson.Timestamp "created"
+	Modified bson.Timestamp "modified"
+	From     bson.ObjectId  "from"
+	To       bson.ObjectId  "to"
+	Value    interface{}    "value"
 }
 
 func (kp *KPartite) makeEdgeID(from, to bson.ObjectId) bson.ObjectId {
@@ -207,11 +215,14 @@ func (kp *KPartite) makeEdgeID(from, to bson.ObjectId) bson.ObjectId {
 }
 
 func (kp *KPartite) AddEdge(edgeType string, from, to bson.ObjectId, value interface{}) (bson.ObjectId, os.Error) {
+	now := bson.Timestamp(time.Nanoseconds())
 	ed := &EdgeDoc{
-		ID:    kp.makeEdgeID(from, to),
-		From:  from,
-		To:    to,
-		Value: value,
+		ID:       kp.makeEdgeID(from, to),
+		Created:  now,
+		Modified: now,
+		From:     from,
+		To:       to,
+		Value:    value,
 	}
 	et := kp.GetEdgeType(edgeType)
 	if et == nil {
@@ -221,11 +232,14 @@ func (kp *KPartite) AddEdge(edgeType string, from, to bson.ObjectId, value inter
 }
 
 func (kp *KPartite) AddOrReplaceEdge(edgeType string, from, to bson.ObjectId, value interface{}) (bson.ObjectId, os.Error) {
+	now := bson.Timestamp(time.Nanoseconds())
 	ed := &EdgeDoc{
-		ID:    kp.makeEdgeID(from, to),
-		From:  from,
-		To:    to,
-		Value: value,
+		ID:       kp.makeEdgeID(from, to),
+		Created:  now,
+		Modified: now,
+		From:     from,
+		To:       to,
+		Value:    value,
 	}
 	et := kp.GetEdgeType(edgeType)
 	if et == nil {
@@ -240,7 +254,8 @@ func (kp *KPartite) UpdateEdge(edgeType string, edgeID bson.ObjectId, value inte
 	if et == nil {
 		return ErrArg
 	}
-	return et.C.Update(bson.D{{"_id", edgeID}}, bson.D{{"value", value}})
+	now := bson.Timestamp(time.Nanoseconds())
+	return et.C.Update(bson.D{{"_id", edgeID}}, bson.D{{"modified", now}, {"value", value}})
 }
 
 func (kp *KPartite) UpdateEdgeAnchors(edgeType string, from, to bson.ObjectId, value interface{}) os.Error {
@@ -281,6 +296,7 @@ func (kp *KPartite) RemoveEdgeAnchors(edgeType string, from, to bson.ObjectId) o
 
 // Node-edge functions
 
+// RemoveNode removes the given node and all incident edges
 func (kp *KPartite) RemoveNode(nodeType string, nodeID bson.ObjectId) os.Error {
 	nt := kp.GetNodeType(nodeType)
 	if nt == nil {
@@ -291,8 +307,12 @@ func (kp *KPartite) RemoveNode(nodeType string, nodeID bson.ObjectId) os.Error {
 	}
 	ets := kp.GetEdgeTypes()
 	for _, et := range ets {
-		et.C.RemoveAll(bson.D{{"from", nodeID}})
-		et.C.RemoveAll(bson.D{{"to", nodeID}})
+		if et.From == nt {
+			et.C.RemoveAll(bson.D{{"from", nodeID}})
+		}
+		if et.To == nt {
+			et.C.RemoveAll(bson.D{{"to", nodeID}})
+		}
 	}
 
 	return nil

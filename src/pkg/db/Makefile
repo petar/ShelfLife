@@ -6,5 +6,6 @@ GOFILES=\
 	kpartite.go\
 	user.go\
 	like.go\
+	msg.go\
 
 include $(GOROOT)/src/Make.pkg
