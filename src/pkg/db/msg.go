@@ -113,26 +113,75 @@ func (db *Db) RemoveMsg(msg bson.ObjectId) os.Error {
 	return db.kp.RemoveNode("msg", msg)
 }
 
-// MsgJoin packs all message information in a single struct 
-type MsgJoin struct {
-	ID         string  // Message ID
-	AttachToID string  // Foreign ID
-	ReplyToID  string  // ID of message replying to
-	AuthorID   string  // User ID of author
-	Body       string
-}
-
 // FindMsgAttachedTo returns all messages attached to a given foreign object
 func (db *Db) FindMsgAttachedTo(attachTo string) ([]*MsgJoin, os.Error) {
 	// Obtain object ID of foreign ID
 	fID, err := db.addOrGetForeign(attachTo)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	// Find messages attached to this object
 	q, err := db.kp.ArrivingEdges("msg_attach_to", fID)
 	if err != nil {
 		return nil, err
 	}
-	?
+	iter, err := q.Iter()
+	if err != nil {
+		return nil, err
+	}
+	r := make([]*MsgJoin, 0)
+	edgeDoc := &EdgeDoc{}
+	for err = iter.Next(edgeDoc); err != nil; err = iter.Next(edgeDoc) {
+		join, err := db.joinMsg(edgeDoc.From)
+		if err != nil {
+			continue
+		}
+		r = append(r, join)
+	}
+	return r, nil
+}
+
+// MsgJoin packs all message information in a single struct 
+type MsgJoin struct {
+	ID       bson.ObjectId  // msg_ID
+	Body     string
+	Author   bson.ObjectId  // user_ID of author
+	AttachTo bson.ObjectId  // foreign_ID of object the message is attached to
+	ReplyTo  bson.ObjectId  // msg_ID of message replying to
+}
+
+func (db *Db) joinMsg(msgID bson.ObjectId) (*MsgJoin, os.Error) {
+	join := &MsgJoin{}
+	join.ID = msgID
+
+	// Get body
+	nd, err := db.kp.FindNode("msg", bson.D{{"_id", msgID}})
+	if err != nil {
+		return nil, err
+	}
+	// XXX
+	join.Body = (nd.Value).(map[string]interface{})["Body"].(string)
+
+	// Find Author
+	ed, err := db.kp.LeavingEdge("msg_written_by", msgID)
+	if err != nil {
+		return nil, err
+	}
+	join.Author = ed.To
+
+	// Find attach-to object
+	ed, err = db.kp.LeavingEdge("msg_attach_to", msgID)
+	if err != nil {
+		return nil, err
+	}
+	join.AttachTo = ed.To
+
+	// Find ReplyTo message
+	ed, err = db.kp.LeavingEdge("msg_replies_to", msgID)
+	if err != nil {
+		return nil, err
+	}
+	join.ReplyTo = ed.To
+
+	return nil, nil
 }

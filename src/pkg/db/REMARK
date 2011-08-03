@@ -1,4 +1,17 @@
 
 * update mgo
+* update struct tags
+
+* add follow/notification system
+* add notification page per user
+
+* doc
 
 * why does "like" take a small delay on localhost?
+
+
+_______________________
+ID stuff:
+
+In context, ID = object ID in respective node/edge type
+No context, ID = object ID in foreign node type

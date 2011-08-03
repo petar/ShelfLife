@@ -75,7 +75,7 @@ func (db *Db) Like(user bson.ObjectId, fid string) os.Error {
 
 // addOrGetForeign create a node for the given foreign ID and returns its node object ID
 func (db *Db) addOrGetForeign(fid string) (bson.ObjectId, os.Error) {
-	q, err := db.kp.FindNode("foreign", bson.D{{"fid", fid}})
+	q, err := db.kp.FindNodes("foreign", bson.D{{"fid", fid}})
 	if err != nil {
 		return "", err
 	}

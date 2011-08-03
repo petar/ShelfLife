@@ -49,7 +49,7 @@ type userFind struct {
 // A non-nil error indicates a connectivity problem. 
 // A missing user returns u == nil and err == nil.
 func (db *Db) FindUserByEmail(email string) (u *UserDoc, err os.Error) {
-	q, err := db.kp.FindNode("user", bson.D{{"email", email}})
+	q, err := db.kp.FindNodes("user", bson.D{{"email", email}})
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (db *Db) FindUserByEmail(email string) (u *UserDoc, err os.Error) {
 // A non-nil error indicates a connectivity problem. 
 // A missing user returns u == nil and err == nil.
 func (db *Db) FindUserByLogin(login string) (u *UserDoc, uid bson.ObjectId, err os.Error) {
-	q, err := db.kp.FindNode("user", bson.D{{"login", login}})
+	q, err := db.kp.FindNodes("user", bson.D{{"login", login}})
 	if err != nil {
 		return nil, "", err
 	}

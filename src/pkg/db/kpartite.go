@@ -164,12 +164,22 @@ func (kp *KPartite) UpdateNode(nodeType string, nodeID bson.ObjectId, value inte
 	return nt.C.Update(bson.D{{"_id", nodeID}}, bson.D{{"value", value}, {"modified", now}})
 }
 
-func (kp *KPartite) FindNode(nodeType string, query interface{}) (*mgo.Query, os.Error) {
+func (kp *KPartite) FindNodes(nodeType string, query interface{}) (*mgo.Query, os.Error) {
 	nt := kp.GetNodeType(nodeType)
 	if nt == nil {
 		return nil, ErrType
 	}
 	return nt.C.Find(rewriteQuery(query)), nil
+}
+
+func (kp *KPartite) FindNode(nodeType string, query interface{}) (*NodeDoc, os.Error) {
+	q, err := kp.FindNodes(nodeType, query)
+	if err != nil {
+		return nil, err
+	}
+	nodeDoc := &NodeDoc{}
+	err = q.One(nodeDoc)
+	return nodeDoc, err
 }
 
 func rewriteQuery(q interface{}) interface{} {
@@ -326,12 +336,36 @@ func (kp *KPartite) LeavingEdges(edgeType string, from bson.ObjectId) (*mgo.Quer
 	return et.C.Find(bson.D{{"from", from}}), nil
 }
 
+func (kp *KPartite) LeavingEdge(edgeType string, from bson.ObjectId) (*EdgeDoc, os.Error) {
+	q, err := kp.LeavingEdges(edgeType, from)
+	if err != nil {
+		return nil, err
+	}
+	edgeDoc := &EdgeDoc{}
+	if err = q.One(edgeDoc); err != nil {
+		return edgeDoc, err
+	}
+	return edgeDoc, nil
+}
+
 func (kp *KPartite) ArrivingEdges(edgeType string, to bson.ObjectId) (*mgo.Query, os.Error) {
 	et := kp.GetEdgeType(edgeType)
 	if et == nil {
 		return nil, ErrType
 	}
 	return et.C.Find(bson.D{{"to", to}}), nil
+}
+
+func (kp *KPartite) ArrivingEdge(edgeType string, to bson.ObjectId) (*EdgeDoc, os.Error) {
+	q, err := kp.ArrivingEdges(edgeType, to)
+	if err != nil {
+		return nil, err
+	}
+	edgeDoc := &EdgeDoc{}
+	if err = q.One(edgeDoc); err != nil {
+		return edgeDoc, err
+	}
+	return edgeDoc, nil
 }
 
 func (kp *KPartite) LeavingDegree(edgeType string, from bson.ObjectId) (int, os.Error) {
