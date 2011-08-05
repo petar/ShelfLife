@@ -13,4 +13,5 @@ var (
 	ErrDb    = os.NewError("database error")
 	ErrApp   = os.NewError("operation denied by app")
 	ErrSec   = os.NewError("operation denied for security reasons")
+	ErrArg   = os.NewError("missing or invalid arguments")
 )

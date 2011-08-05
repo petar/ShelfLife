@@ -65,7 +65,7 @@ type foreignFind struct {
 // Like updates the databse to indicate that user like foreign object fid.
 // It is idempotent (multiple calls are OK).
 func (db *Db) Like(user bson.ObjectId, fid string) os.Error {
-	id, err := db.addOrGetForeign(fid)
+	id, err := db.GetOrMakeForeignID(fid)
 	if err != nil {
 		return err
 	}
@@ -73,8 +73,8 @@ func (db *Db) Like(user bson.ObjectId, fid string) os.Error {
 	return err
 }
 
-// addOrGetForeign create a node for the given foreign ID and returns its node object ID
-func (db *Db) addOrGetForeign(fid string) (bson.ObjectId, os.Error) {
+// GetOrMakeForeignID create a node for the given foreign ID and returns its node object ID
+func (db *Db) GetOrMakeForeignID(fid string) (bson.ObjectId, os.Error) {
 	q, err := db.kp.FindNodes("foreign", bson.D{{"fid", fid}})
 	if err != nil {
 		return "", err
@@ -89,7 +89,7 @@ func (db *Db) addOrGetForeign(fid string) (bson.ObjectId, os.Error) {
 // Unlike updates the databse to indicate that user does not like foreign object fid.
 // It is idempotent (multiple calls are OK).
 func (db *Db) Unlike(user bson.ObjectId, fid string) os.Error {
-	id, err := db.addOrGetForeign(fid)
+	id, err := db.GetOrMakeForeignID(fid)
 	if err != nil {
 		return err
 	}
@@ -107,7 +107,7 @@ func (db *Db) LikeCount(fid string) (int, os.Error) {
 
 // Likes returns true, if the user with the given node ID likes the foreign object fid
 func (db *Db) Likes(user bson.ObjectId, fid string) (bool, os.Error) {
-	id, err := db.addOrGetForeign(fid)
+	id, err := db.GetOrMakeForeignID(fid)
 	if err != nil {
 		return false, err
 	}

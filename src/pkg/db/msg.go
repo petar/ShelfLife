@@ -73,50 +73,64 @@ func (db *Db) initMsg() os.Error {
 
 // AddMsg adds a new message, attached to attachTo foreign object, and in reply to an existing
 // message with object ID relyTo (if replyTo is a valid object ID).
-func (db *Db) AddMsg(user bson.ObjectId, attachTo string, replyTo bson.ObjectId, body string) os.Error {
+func (db *Db) AddMsg(user bson.ObjectId, attachTo string, replyTo bson.ObjectId, body string) (bson.ObjectId, os.Error) {
 	// Obtain object ID of foreign ID
-	fID, err := db.addOrGetForeign(attachTo)
+	fID, err := db.GetOrMakeForeignID(attachTo)
 	if err != nil {
-		return err
+		return "", err
 	}
 	// Add message node
 	msgID, err := db.kp.AddNode("msg", &MsgDoc{ Body: body })
 	if err != nil {
-		return err
+		return "", err
 	}
 	// Add written-by relation
 	// XXX: check that user exists?
 	if _, err = db.kp.AddEdge("msg_written_by", msgID, user, nil); err != nil {
-		return err
+		return "", err
 	}
 	// Add attach-to relation
 	if _, err = db.kp.AddEdge("msg_attach_to", msgID, fID, nil); err != nil {
-		return err
+		return "", err
 	}
 	// Add reply-to relation
 	if replyTo.Valid() {
-		// XXX: check that replyTo msg exists?
+		// XXX: check that replyTo msg exists and attaches to same object
 		if _, err = db.kp.AddEdge("msg_replies_to", msgID, replyTo, nil); err != nil {
-			return err
+			return "", err
 		}
 	}
-	return nil
+	return msgID, nil
 }
 
 // EditMsg updates the body of the given message
-func (db *Db) EditMsg(msg bson.ObjectId, body string) os.Error {
-	return db.kp.UpdateNode("msg", msg, &MsgDoc{ Body: body })
+func (db *Db) EditMsg(editorID, msgID bson.ObjectId, body string) os.Error {
+	join, err := db.joinMsg(msgID)
+	if err != nil {
+		return err
+	}
+	if join.Author != editorID {
+		return ErrSec
+	}
+	return db.kp.UpdateNode("msg", msgID, &MsgDoc{ Body: body })
 }
 
 // RemoveMsg removes a message and all incident edges
-func (db *Db) RemoveMsg(msg bson.ObjectId) os.Error {
-	return db.kp.RemoveNode("msg", msg)
+func (db *Db) RemoveMsg(editorID, msgID bson.ObjectId) os.Error {
+	join, err := db.joinMsg(msgID)
+	if err != nil {
+		return err
+	}
+	if join.Author != editorID {
+		return ErrSec
+	}
+	return db.kp.RemoveNode("msg", msgID)
 }
 
 // FindMsgAttachedTo returns all messages attached to a given foreign object
 func (db *Db) FindMsgAttachedTo(attachTo string) ([]*MsgJoin, os.Error) {
 	// Obtain object ID of foreign ID
-	fID, err := db.addOrGetForeign(attachTo)
+	fID, err := db.GetOrMakeForeignID(attachTo)
 	if err != nil {
 		return nil, err
 	}

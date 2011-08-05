@@ -3,9 +3,11 @@ include $(GOROOT)/src/Make.inc
 TARG=github.com/petar/ShelfLife/sociability
 GOFILES=\
 	api.go\
+	enc.go\
 	err.go\
 	like.go\
 	login.go\
+	msg.go\
 	pass.go\
 	sanitize.go\
 
