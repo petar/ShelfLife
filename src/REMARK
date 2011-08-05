@@ -1,0 +1,27 @@
+
+————— SHORT TERM —————
+
+* db: update mgo
+* db: update struct tags
+
+* add follow/notification system
+* add notification page per user UI
+
+* doc
+
+* [PROF] why does "like" take a small delay on localhost?
+
+* [BUG] ss: SignUp can create multiple users (fixed?)
+
+————— LONGER TERM —————
+
+* Make system that prepares static directory
+* Figure out theme conventions
+
+* login -> username (?)
+	* add signinUserOrEmail
+* html demo
+	* add modernizr
+	* add guides.js
+
+* add url-per-resource scheme
