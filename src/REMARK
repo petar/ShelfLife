@@ -4,14 +4,18 @@
 * db: update mgo
 * db: update struct tags
 
-* add follow/notification system
-* add notification page per user UI
+* notification
+	* add follow/notify backend
+	* follow button UI
+	* notify page UI
 
 * doc
 
 * [PROF] why does "like" take a small delay on localhost?
 
 * [BUG] ss: SignUp can create multiple users (fixed?)
+
+* cleanup the terminology 'foreign object', 'foreign id'
 
 ————— LONGER TERM —————
 

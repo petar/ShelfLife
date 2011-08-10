@@ -5,52 +5,119 @@
 package db
 
 import (
-	"log"
+	//"log"
 	"os"
-	gobson "launchpad.net/gobson"
-	"launchpad.net/mgo"
+	"github.com/petar/ShelfLife/thirdparty/bson"
+	"github.com/petar/ShelfLife/thirdparty/mgo"
 )
 
-type Follow struct {
-	Who  string
-	What string
-	Attr string
+// Node doc for notify messages
+// XXX
+type NotifyMsgDoc struct {
 }
 
-?
-
-func (db *Db) AddFollow(u *User) os.Error {
-	return db.u.Insert(u)
+// Edge doc for notify edges user->notify_msg
+type NotifyDoc struct {
+	ForeignID bson.ObjectId "object_id"
 }
 
-// FindUserByEmail looks up a user record with the given email.
-// A non-nil error indicates a connectivity problem. 
-// A missing user returns u == nil and err == nil.
-func (db *Db) FindUserByEmail(email string) (u *User, err os.Error) {
-	u = &User{}
-	err = db.u.Find(gobson.M{ "email": email }).One(u)
-	if err == mgo.NotFound {
-		return nil, nil
-	}
+
+// initFollow adds and configures the follow/notify system
+func (db *Db) initFollow() os.Error {
+	// Edge type for connecting users to objects they follow
+	et, err := db.kp.AddEdgeType("follow", "user", "foreign")
 	if err != nil {
-		log.Printf("MongoDB error: %s\n", err)
-		u = nil
+		return err
 	}
-	return u, err
+	index := mgo.Index{
+		Key:        []string{"_id"},
+		Unique:     true,
+		DropDups:   false,
+		Background: false,
+		Sparse:     false,
+	}
+	if err = et.C.EnsureIndex(index); err != nil {
+		return err
+	}
+	// Node type for a notification
+	_, err = db.kp.AddNodeType("notify_msg")
+	if err != nil {
+		return err
+	}
+	// Edge type user->notification showing a user's notifications list
+	et, err := db.kp.AddEdgeType("notify", "user", "notify_msg")
+	if err != nil {
+		return err
+	}
+	index := mgo.Index{
+		Key:        []string{"_id"},
+		Unique:     true,
+		DropDups:   false,
+		Background: false,
+		Sparse:     false,
+	}
+	if err = et.C.EnsureIndex(index); err != nil {
+		return err
+	}
+	index = mgo.Index{
+		Key:        []string{"from"},
+		Unique:     false,
+		DropDups:   false,
+		Background: false,
+		Sparse:     false,
+	}
+	if err = et.C.EnsureIndex(index); err != nil {
+		return err
+	}
+	return nil
 }
 
-// FindUserByLogin looks up a user record with the given login (i.e. username).
-// A non-nil error indicates a connectivity problem. 
-// A missing user returns u == nil and err == nil.
-func (db *Db) FindUserByLogin(login string) (u *User, err os.Error) {
-	u = &User{}
-	err = db.u.Find(gobson.M{ "login": login }).One(u)
-	if err == mgo.NotFound {
-		return nil, nil
-	}
+func (db *Db) SetFollow(user bson.ObjectId, foreign string) os.Error {
+	id, err := db.GetOrMakeForeignID(foreign)
 	if err != nil {
-		log.Printf("MongoDB error: %s\n", err)
-		u = nil
+		return err
 	}
-	return u, err
+	_, err = db.kp.AddOrReplaceEdge("follow", user, id, nil)
+	return err
+}
+
+func (db *Db) UnsetFollow(user bson.ObjectId, foreign string) os.Error {
+	id, err := db.GetOrMakeForeignID(foreign)
+	if err != nil {
+		return err
+	}
+	return db.kp.RemoveEdgeAnchors("follow", user, id)
+}
+
+func (db *Db) IsFollow(user bson.ObjectId, foreign string) (bool, os.Error) {
+	id, err := db.GetOrMakeForeignID(foreign)
+	if err != nil {
+		return false, err
+	}
+	return db.kp.IsEdge("follow", user, id)
+}
+
+func (db *Db) FollowerCount(foreignID bson.ObjectId) (int, os.Error) {
+	return db.kp.ArrivingDegree("follow", foreignID)
+}
+
+func (db *Db) ListFollowed(user bson.ObjectId) ([]bson.ObjectId, os.Error) {
+	q, err := db.kp.LeavingEdges("follow", user)
+	if err != nil {
+		return nil, err
+	}
+	n, err := q.Count()
+	if err != nil {
+		return nil, err
+	}
+	r := make([]bson.ObjectId, 0, n)
+	iter, err := q.Iter()
+	if err != nil {
+		return nil, err
+	}
+	edgeDoc := &EdgeDoc{}
+	for err = iter.Next(edgeDoc); err != nil; err = iter.Next(edgeDoc) {
+		r = append(r, edgeDoc.To)
+	}
+	return r, nil
 }

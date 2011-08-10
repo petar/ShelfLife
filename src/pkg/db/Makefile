@@ -8,5 +8,6 @@ GOFILES=\
 	user.go\
 	like.go\
 	msg.go\
+	follow.go\
 
 include $(GOROOT)/src/Make.pkg

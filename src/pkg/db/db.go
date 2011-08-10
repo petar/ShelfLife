@@ -38,6 +38,11 @@ func NewDb(addr, dbname string) (db *Db, err os.Error) {
 		db.Close()
 		return nil, err
 	}
+	// Initialize follow/notify  system
+	if err := db.initFollow(); err != nil {
+		db.Close()
+		return nil, err
+	}
 	// Initialize messaging system
 	if err := db.initMsg(); err != nil {
 		db.Close()
