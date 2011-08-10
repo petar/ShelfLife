@@ -34,10 +34,12 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"github.com/petar/ShelfLife/thirdparty/bson"
+	"fmt"
 	"sync"
 	"os"
 	"reflect"
 	"runtime"
+	"sort"
 	"strings"
 	"time"
 )
@@ -92,9 +94,9 @@ type query struct {
 
 type getLastError struct {
 	CmdName  int  "getLastError"
-	W        int  "w/c"
-	WTimeout int  "wtimeout/c"
-	FSync    bool "fsync/c"
+	W        int  "w,omitempty"
+	WTimeout int  "wtimeout,omitempty"
+	FSync    bool "fsync,omitempty"
 }
 
 type Iter struct {
@@ -115,7 +117,6 @@ var NotFound = os.NewError("Document not found")
 var TailTimeout = os.NewError("Tail timed out")
 
 const defaultPrefetch = 0.25
-
 
 // Mongo establishes a new session to the cluster identified by the given seed
 // server(s).  The session will enable communication with all of the servers in
@@ -202,7 +203,7 @@ func parseURL(url string) (servers []string, auth authInfo, options map[string]s
 	}
 	options = make(map[string]string)
 	if c := strings.Index(url, "?"); c != -1 {
-		for _, pair := range strings.SplitN(url[c+1:], ";", -1) {
+		for _, pair := range strings.Split(url[c+1:], ";") {
 			l := strings.SplitN(pair, "=", 2)
 			if len(l) != 2 || l[0] == "" || l[1] == "" {
 				err = os.NewError("Connection option must be key=value: " + pair)
@@ -237,7 +238,7 @@ func parseURL(url string) (servers []string, auth authInfo, options map[string]s
 	} else if auth.db == "" {
 		auth.db = "admin"
 	}
-	servers = strings.SplitN(url, ",", -1)
+	servers = strings.Split(url, ",")
 	// XXX This is untested. The test suite doesn't use the standard port.
 	for i, server := range servers {
 		p := strings.LastIndexAny(server, "]:")
@@ -293,11 +294,11 @@ func finalizeSession(session *Session) {
 	session.Close()
 }
 
-// GetLiveServers returns a list of server addresses which are
+// LiveServers returns a list of server addresses which are
 // currently known to be alive.
-func (session *Session) GetLiveServers() (addrs []string) {
+func (session *Session) LiveServers() (addrs []string) {
 	session.m.RLock()
-	addrs = session.cluster().GetLiveServers()
+	addrs = session.cluster().LiveServers()
 	session.m.RUnlock()
 	return addrs
 }
@@ -346,7 +347,7 @@ func (database Database) GridFS(prefix string) *GridFS {
 // use an ordering-preserving document, such as a struct value or an
 // instance of bson.D.  For instance:
 //
-//     db.Run(mgo.D{{"create", "mycollection"}, {"size", 1024}})
+//     db.Run(bson.D{{"create", "mycollection"}, {"size", 1024}})
 //
 // For privilleged commands typically run against the "admin" database, see
 // the Run method in the Session type.
@@ -448,11 +449,11 @@ func (database Database) RemoveUser(user string) os.Error {
 type indexSpec struct {
 	Name, NS       string
 	Key            bson.D
-	Unique         bool "/c"
-	DropDups       bool "dropDups/c"
-	Background     bool "/c"
-	Sparse         bool "/c"
-	Bits, Min, Max int  "/c"
+	Unique         bool ",omitempty"
+	DropDups       bool "dropDups,omitempty"
+	Background     bool ",omitempty"
+	Sparse         bool ",omitempty"
+	Bits, Min, Max int  ",omitempty"
 }
 
 type Index struct {
@@ -1311,9 +1312,9 @@ func (query *Query) Select(selector interface{}) *Query {
 
 type queryWrapper struct {
 	Query   interface{} "$query"
-	OrderBy interface{} "$orderby/c"
-	Hint    interface{} "$hint/c"
-	Explain bool        "$explain/c"
+	OrderBy interface{} "$orderby,omitempty"
+	Hint    interface{} "$hint,omitempty"
+	Explain bool        "$explain,omitempty"
 }
 
 func (query *Query) wrap() *queryWrapper {
@@ -1483,6 +1484,101 @@ func (query *Query) One(result interface{}) (err os.Error) {
 	}
 
 	return checkQueryError(data)
+}
+
+// The DBRef type implements support for the database reference MongoDB
+// convention as supported by multiple drivers.  This convention enables
+// cross-referencing documents between collections and databases using
+// a structure which includes a collection name, a document id, and
+// optionally a database name.
+//
+// See the FindRef methods on Session and on Database.
+// 
+// Relevant documentation:
+//
+//     http://www.mongodb.org/display/DOCS/Database+References
+//
+type DBRef struct {
+	C  string      `bson:"$ref"`
+	ID interface{} `bson:"$id"`
+	DB string      `bson:"$db,omitempty"`
+}
+
+type id struct {
+	Id interface{} "_id"
+}
+
+// FindRef retrieves the document in the provided reference and stores it
+// in result.  If the reference includes the DB field, the document will
+// be retrieved from the respective database.
+//
+// See also the DBRef type and the FindRef method on Session.
+//
+// Relevant documentation:
+// 
+//     http://www.mongodb.org/display/DOCS/Database+References
+//
+func (database Database) FindRef(ref DBRef, result interface{}) os.Error {
+	if ref.DB == "" {
+		return database.C(ref.C).Find(id{ref.ID}).One(result)
+	}
+	return database.Session.DB(ref.DB).C(ref.C).Find(id{ref.ID}).One(result)
+}
+
+// FindRef retrieves the document in the provided reference and stores it
+// in result.  For a DBRef to be resolved correctly at the session level
+// it must necessarily have the optional DB field defined.
+//
+// See also the DBRef type and the FindRef method on Database.
+//
+// Relevant documentation:
+// 
+//     http://www.mongodb.org/display/DOCS/Database+References
+//
+func (session *Session) FindRef(ref DBRef, result interface{}) os.Error {
+	if ref.DB == "" {
+		return os.NewError(fmt.Sprintf("Can't resolve database for %#v", ref))
+	}
+	return session.DB(ref.DB).C(ref.C).Find(id{ref.ID}).One(result)
+}
+
+// CollectionNames returns the collection names present in database.
+func (database *Database) CollectionNames() (names []string, err os.Error) {
+	c := len(database.Name) + 1
+	var result *struct{ Name string }
+	err = database.C("system.namespaces").Find(nil).For(&result, func() os.Error {
+		if strings.Index(result.Name, "$") < 0 || strings.Index(result.Name, ".oplog.$") >= 0 {
+			names = append(names, result.Name[c:])
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	sort.StringSlice(names).Sort()
+	return names, nil
+}
+
+type dbNames struct {
+	Databases []struct {
+		Name  string
+		Empty bool
+	}
+}
+
+// DatabaseNames returns the names of non-empty databases present in the cluster.
+func (session *Session) DatabaseNames() (names []string, err os.Error) {
+	var result dbNames
+	err = session.Run("listDatabases", &result)
+	if err != nil {
+		return nil, err
+	}
+	for _, db := range result.Databases {
+		if !db.Empty {
+			names = append(names, db.Name)
+		}
+	}
+	return names, nil
 }
 
 // Iter executes the query and returns an iterator capable of going over all
@@ -1840,7 +1936,7 @@ func (collection Collection) Count() (n int, err os.Error) {
 type distinctCmd struct {
 	Collection string "distinct"
 	Key        string
-	Query      interface{} "/c"
+	Query      interface{} ",omitempty"
 }
 
 // Distinct returns a list of distinct values for the given key within
@@ -1886,15 +1982,15 @@ func (query *Query) Distinct(key string, result interface{}) os.Error {
 
 type mapReduceCmd struct {
 	Collection string "mapreduce"
-	Map        string "/c"
-	Reduce     string "/c"
-	Finalize   string "/c"
-	Limit      int32  "/c"
+	Map        string ",omitempty"
+	Reduce     string ",omitempty"
+	Finalize   string ",omitempty"
+	Limit      int32  ",omitempty"
 	Out        interface{}
-	Query      interface{} "/c"
-	Sort       interface{} "/c"
-	Scope      interface{} "/c"
-	Verbose    bool        "/c"
+	Query      interface{} ",omitempty"
+	Sort       interface{} ",omitempty"
+	Scope      interface{} ",omitempty"
+	Verbose    bool        ",omitempty"
 }
 
 type mapReduceResult struct {
@@ -2082,8 +2178,8 @@ type Change struct {
 
 type findModifyCmd struct {
 	Collection                  string      "findAndModify"
-	Query, Update, Sort, Fields interface{} "/c"
-	Upsert, Remove, New         bool        "/c"
+	Query, Update, Sort, Fields interface{} ",omitempty"
+	Upsert, Remove, New         bool        ",omitempty"
 }
 
 type valueResult struct {
@@ -2257,7 +2353,7 @@ func (iter *Iter) replyFunc() replyFunc {
 				iter.op.cursorId = op.cursorId
 			}
 			// XXX Handle errors and flags.
-			debugf("Iter %p received reply document %d/%d", iter, docNum+1, rdocs)
+			debugf("Iter %p received reply document %d/%d (cursor=%d)", iter, docNum+1, rdocs, op.cursorId)
 			iter.docData.Push(docData)
 		}
 		iter.gotReply.Broadcast()

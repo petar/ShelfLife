@@ -33,10 +33,12 @@ package bson_test
 import (
 	. "launchpad.net/gocheck"
 	"encoding/binary"
+	"json"
 	"testing"
 	"reflect"
 	"time"
 	"launchpad.net/gobson/bson"
+	"os"
 )
 
 
@@ -132,8 +134,6 @@ var allItems = []testItemType{
 		"\x04_\x00\r\x00\x00\x00\x080\x00\x01\x081\x00\x00\x00"},
 	{bson.M{"_": []byte("yo")},
 		"\x05_\x00\x02\x00\x00\x00\x00yo"},
-	{bson.M{"_": bson.Binary{0x02, []byte("old")}},
-		"\x05_\x00\x07\x00\x00\x00\x02\x03\x00\x00\x00old"},
 	{bson.M{"_": bson.Binary{0x80, []byte("udef")}},
 		"\x05_\x00\x04\x00\x00\x00\x80udef"},
 	{bson.M{"_": bson.Undefined}, // Obsolete, but still seen in the wild.
@@ -209,7 +209,7 @@ func (s *S) TestUnmarshalRawAllItems(c *C) {
 func (s *S) TestUnmarshalRawIncompatible(c *C) {
 	raw := bson.Raw{0x08, []byte{0x01}} // true
 	err := raw.Unmarshal(&struct{}{})
-	c.Assert(err, Matches, `BSON kind 0x08 isn't compatible with type \*struct { }`)
+	c.Assert(err, Matches, "BSON kind 0x08 isn't compatible with type struct { }")
 }
 
 // --------------------------------------------------------------------------
@@ -244,6 +244,8 @@ var oneWayMarshalItems = []testItemType{
 	// Will unmarshal as a []byte.
 	{bson.M{"": bson.Binary{0x00, []byte("yo")}},
 		"\x05\x00\x02\x00\x00\x00\x00yo"},
+	{bson.M{"": bson.Binary{0x02, []byte("old")}},
+		"\x05\x00\x07\x00\x00\x00\x02\x03\x00\x00\x00old"},
 
 	// No way to preserve the type information here. We might encode as a zero
 	// value, but this would mean that pointer values in structs wouldn't be
@@ -367,7 +369,6 @@ var structItems = []testItemType{
 		"\x05v\x00\x02\x00\x00\x00\x00yo"},
 }
 
-
 func (s *S) TestMarshalStructItems(c *C) {
 	for i, item := range structItems {
 		data, err := bson.Marshal(item.obj)
@@ -383,6 +384,23 @@ func (s *S) TestUnmarshalStructItems(c *C) {
 	}
 }
 
+func (s *S) TestUnmarshalRawStructItems(c *C) {
+	for i, item := range structItems {
+		raw := bson.Raw{0x03, []byte(wrapInDoc(item.data))}
+		zero := makeZeroDoc(item.obj)
+		err := raw.Unmarshal(zero)
+		c.Assert(err, IsNil)
+		c.Assert(zero, Equals, item.obj, Bug("Failed on item %d: %#v", i, item))
+	}
+}
+
+func (s *S) TestUnmarshalRawNil(c *C) {
+	// Regression test: shouldn't try to nil out the pointer itself,
+	// as it's not settable.
+	raw := bson.Raw{0x0A, []byte{}}
+	err := raw.Unmarshal(&struct{}{})
+	c.Assert(err, IsNil)
+}
 
 // --------------------------------------------------------------------------
 // One-way marshaling tests.
@@ -433,10 +451,7 @@ var unmarshalItems = []testItemType{
 	{map[string]string{"str": "s"},
 		"\x02str\x00\x02\x00\x00\x00s\x00" + "\x10int\x00\x01\x00\x00\x00"},
 	{map[string][]int{"array": []int{5, 9}},
-		"\x04array\x00" +
-			wrapInDoc("\x100\x00\x05\x00\x00\x00"+
-				"\x021\x00\x02\x00\x00\x00s\x00"+
-				"\x102\x00\x09\x00\x00\x00")},
+		"\x04array\x00" + wrapInDoc("\x100\x00\x05\x00\x00\x00"+ "\x021\x00\x02\x00\x00\x00s\x00"+ "\x102\x00\x09\x00\x00\x00")},
 
 	// Wrong type. Shouldn't init pointer.
 	{&struct{ Str *byte }{},
@@ -451,6 +466,10 @@ var unmarshalItems = []testItemType{
 	// Raw document.
 	{&bson.Raw{0x03, []byte(wrapInDoc("\x10byte\x00\x08\x00\x00\x00"))},
 		"\x10byte\x00\x08\x00\x00\x00"},
+
+	// Decode old binary.
+	{bson.M{"_": []byte("old")},
+		"\x05_\x00\x07\x00\x00\x00\x02\x03\x00\x00\x00old"},
 }
 
 
@@ -570,11 +589,12 @@ var unmarshalRawErrorItems = []unmarshalRawErrorType{
 
 	{struct{ Name bool }{},
 		bson.Raw{0x10, []byte("\x08\x00\x00\x00")},
-		"Raw Unmarshal needs a map or a valid pointer."},
+		"Raw Unmarshal can't deal with struct values. Use a pointer."},
 
 	{123,
 		bson.Raw{0x10, []byte("\x08\x00\x00\x00")},
 		"Raw Unmarshal needs a map or a valid pointer."},
+
 }
 
 func (s *S) TestUnmarshalRawErrorItems(c *C) {
@@ -583,6 +603,7 @@ func (s *S) TestUnmarshalRawErrorItems(c *C) {
 		c.Assert(err, Matches, item.error, Bug("Failed on item %d: %#v\n", i, item))
 	}
 }
+
 
 var corruptedData = []string{
 	"\x04\x00\x00\x00\x00",         // Shorter than minimum
@@ -619,70 +640,80 @@ func (s *S) TestUnmarshalMapDocumentTooShort(c *C) {
 // --------------------------------------------------------------------------
 // Setter test cases.
 
-var setterResult = map[string]bool{}
+var setterResult = map[string]os.Error{}
 
-type typeWithSetter struct {
+type setterType struct {
 	received interface{}
 }
 
-func (o *typeWithSetter) SetBSON(value interface{}) (ok bool) {
-	o.received = value
-	if s, ok := value.(string); ok {
+func (o *setterType) SetBSON(raw bson.Raw) os.Error {
+	err := raw.Unmarshal(&o.received)
+	if err != nil {
+		panic("The panic:" + err.String())
+	}
+	if s, ok := o.received.(string); ok {
 		if result, ok := setterResult[s]; ok {
 			return result
 		}
 	}
-	return true
+	return nil
 }
 
-type docWithSetterField struct {
-	Field *typeWithSetter "_"
+type ptrSetterDoc struct {
+	Field *setterType "_"
 }
 
-func (s *S) TestUnmarshalAllItemsWithSetter(c *C) {
+type valSetterDoc struct {
+	Field setterType "_"
+}
+
+func (s *S) TestUnmarshalAllItemsWithPtrSetter(c *C) {
 	for _, item := range allItems {
-		obj := &docWithSetterField{}
-		err := bson.Unmarshal([]byte(wrapInDoc(item.data)), obj)
-		c.Assert(err, IsNil)
-
-		if item.data == "" {
-			// Nothing to unmarshal. Should be untouched.
-			c.Assert(obj.Field, IsNil)
-		} else {
-			expected := item.obj.(bson.M)["_"]
-
-			if m, ok := expected.(bson.M); ok {
-				// Setter works with a bson.D slice rather than bson.M.
-				slice := make(bson.D, 0, len(m))
-				for key, value := range m {
-					slice = append(slice, bson.DocElem{key, value})
-				}
-				expected = slice
+		for i := 0; i != 2; i++ {
+			var field *setterType
+			if i == 0 {
+				obj := &ptrSetterDoc{}
+				err := bson.Unmarshal([]byte(wrapInDoc(item.data)), obj)
+				c.Assert(err, IsNil)
+				field = obj.Field
+			} else {
+				obj := &valSetterDoc{}
+				err := bson.Unmarshal([]byte(wrapInDoc(item.data)), obj)
+				c.Assert(err, IsNil)
+				field = &obj.Field
 			}
-
-			c.Assert(obj.Field, NotNil,
-				Bug("Pointer not initialized (%#v)", expected))
-			c.Assert(obj.Field.received, Equals, expected)
+			if item.data == "" {
+				// Nothing to unmarshal. Should be untouched.
+				if i == 0 {
+					c.Assert(field, IsNil)
+				} else {
+					c.Assert(field.received, IsNil)
+				}
+			} else {
+				expected := item.obj.(bson.M)["_"]
+				c.Assert(field, NotNil, Bug("Pointer not initialized (%#v)", expected))
+				c.Assert(field.received, Equals, expected)
+			}
 		}
 	}
 }
 
 func (s *S) TestUnmarshalWholeDocumentWithSetter(c *C) {
-	obj := &typeWithSetter{}
+	obj := &setterType{}
 	err := bson.Unmarshal([]byte(sampleItems[0].data), obj)
 	c.Assert(err, IsNil)
-	c.Assert(obj.received, Equals, bson.D{{"hello", "world"}})
+	c.Assert(obj.received, Equals, bson.M{"hello": "world"})
 }
 
-func (s *S) TestUnmarshalWithFalseSetterIgnoresValue(c *C) {
-	setterResult["2"] = false
-	setterResult["4"] = false
+func (s *S) TestUnmarshalSetterOmits(c *C) {
+	setterResult["2"] = &bson.TypeError{}
+	setterResult["4"] = &bson.TypeError{}
 	defer func() {
-		setterResult["2"] = false, false
-		setterResult["4"] = false, false
+		setterResult["2"] = nil, false
+		setterResult["4"] = nil, false
 	}()
 
-	m := map[string]*typeWithSetter{}
+	m := map[string]*setterType{}
 	data := wrapInDoc("\x02abc\x00\x02\x00\x00\x001\x00" +
 		"\x02def\x00\x02\x00\x00\x002\x00" +
 		"\x02ghi\x00\x02\x00\x00\x003\x00" +
@@ -697,6 +728,27 @@ func (s *S) TestUnmarshalWithFalseSetterIgnoresValue(c *C) {
 	c.Assert(m["abc"].received, Equals, "1")
 	c.Assert(m["ghi"].received, Equals, "3")
 }
+
+func (s *S) TestUnmarshalSetterErrors(c *C) {
+	boom := os.NewError("BOOM")
+	setterResult["2"] = boom
+	defer func() {
+		setterResult["2"] = nil, false
+	}()
+
+	m := map[string]*setterType{}
+	data := wrapInDoc("\x02abc\x00\x02\x00\x00\x001\x00" +
+		"\x02def\x00\x02\x00\x00\x002\x00" +
+		"\x02ghi\x00\x02\x00\x00\x003\x00")
+	err := bson.Unmarshal([]byte(data), m)
+	c.Assert(err, Equals, boom)
+	c.Assert(m["abc"], NotNil)
+	c.Assert(m["def"], IsNil)
+	c.Assert(m["ghi"], IsNil)
+
+	c.Assert(m["abc"].received, Equals, "1")
+}
+
 
 func (s *S) TestDMap(c *C) {
 	d := bson.D{{"a", 1}, {"b", 2}}
@@ -747,7 +799,7 @@ func (t intGetter) GetBSON() interface{} {
 }
 
 type typeWithIntGetter struct {
-	V intGetter "/s"
+	V intGetter ",minsize"
 }
 
 func (s *S) TestMarshalShortWithGetter(c *C) {
@@ -768,48 +820,50 @@ type crossTypeItem struct {
 }
 
 type condStr struct {
-	V string "/c"
+	V string ",omitempty"
+}
+type condStrNS struct {
+	V string `a:"A" bson:",omitempty" b:"B"`
 }
 type condBool struct {
-	V bool "/c"
+	V bool ",omitempty"
 }
 type condInt struct {
-	V int "/c"
+	V int ",omitempty"
 }
 type condUInt struct {
-	V uint "/c"
+	V uint ",omitempty"
 }
 type condIface struct {
-	V interface{} "/c"
+	V interface{} ",omitempty"
 }
 type condPtr struct {
-	V *bool "/c"
+	V *bool ",omitempty"
 }
 type condSlice struct {
-	V []string "/c"
+	V []string ",omitempty"
 }
 type condMap struct {
-	V map[string]int "/c"
+	V map[string]int ",omitempty"
 }
 type namedCondStr struct {
-	V string "myv/c"
+	V string "myv,omitempty"
 }
 
 type shortInt struct {
-	V int64 "/s"
+	V int64 ",minsize"
 }
 type shortUint struct {
-	V uint64 "/s"
+	V uint64 ",minsize"
 }
 type shortIface struct {
-	V interface{} "/s"
+	V interface{} ",minsize"
 }
 type shortPtr struct {
-	V *int64 "/s"
+	V *int64 ",minsize"
 }
-
-type slashedName struct {
-	V string "a/b/"
+type shortNonEmptyInt struct {
+	V int64 ",minsize,omitempty"
 }
 
 var truevar = true
@@ -929,6 +983,8 @@ var twoWayCrossItems = []crossTypeItem{
 	{&condUInt{}, map[string]uint{}},
 	{&condStr{"yo"}, map[string]string{"v": "yo"}},
 	{&condStr{}, map[string]string{}},
+	{&condStrNS{"yo"}, map[string]string{"v": "yo"}},
+	{&condStrNS{}, map[string]string{}},
 	{&condSlice{[]string{"yo"}}, map[string][]string{"v": []string{"yo"}}},
 	{&condSlice{}, map[string][]string{}},
 	{&condMap{map[string]int{"k": 1}}, bson.M{"v": bson.M{"k": 1}}},
@@ -952,7 +1008,9 @@ var twoWayCrossItems = []crossTypeItem{
 	{&shortIface{int64(1) << 31}, map[string]interface{}{"v": int64(1 << 31)}},
 	{&shortPtr{int64ptr}, map[string]interface{}{"v": intvar}},
 
-	{&slashedName{"yo"}, map[string]string{"a/b": "yo"}},
+	{&shortNonEmptyInt{1}, map[string]interface{}{"v": 1}},
+	{&shortNonEmptyInt{1 << 31}, map[string]interface{}{"v": int64(1 << 31)}},
+	{&shortNonEmptyInt{}, map[string]interface{}{}},
 }
 
 // Same thing, but only one way (obj1 => obj2).
@@ -997,8 +1055,8 @@ func (s *S) TestOneWayCrossPairs(c *C) {
 
 func (s *S) TestObjectIdHex(c *C) {
 	id := bson.ObjectIdHex("4d88e15b60f486e428412dc9")
-	str := "ObjectIdHex(\"4d88e15b60f486e428412dc9\")"
-	c.Assert(str, Equals, id.String())
+	c.Assert(id.String(), Equals, `ObjectIdHex("4d88e15b60f486e428412dc9")`)
+	c.Assert(id.Hex(), Equals, "4d88e15b60f486e428412dc9")
 }
 
 // --------------------------------------------------------------------------
@@ -1093,4 +1151,35 @@ func (s *S) TestNewObjectIdSeconds(c *C) {
 	c.Assert(id.Machine(), Equals, []byte{0x00, 0x00, 0x00})
 	c.Assert(int(id.Pid()), Equals, 0)
 	c.Assert(int(id.Counter()), Equals, 0)
+}
+
+// --------------------------------------------------------------------------
+// ObjectId JSON marshalling.
+
+type jsonType struct {
+	Id *bson.ObjectId
+}
+
+func (s *S) TestObjectIdJSONMarshaling(c *C) {
+	id := bson.ObjectIdHex("4d88e15b60f486e428412dc9")
+	v := jsonType{Id: &id}
+	data, err := json.Marshal(&v)
+	c.Assert(err, IsNil)
+	c.Assert(string(data), Equals, `{"Id":"4d88e15b60f486e428412dc9"}`)
+}
+
+func (s *S) TestObjectIdJSONUnmarshaling(c *C) {
+	data := []byte(`{"Id":"4d88e15b60f486e428412dc9"}`)
+	v := jsonType{}
+	err := json.Unmarshal(data, &v)
+	c.Assert(err, IsNil)
+	c.Assert(*v.Id, Equals, bson.ObjectIdHex("4d88e15b60f486e428412dc9"))
+}
+
+func (s *S) TestObjectIdJSONUnmarshalingError(c *C) {
+	v := jsonType{}
+	err := json.Unmarshal([]byte(`{"Id":"4d88e15b60f486e428412dc9A"}`), &v)
+	c.Assert(err, Matches, `Invalid ObjectId in JSON: "4d88e15b60f486e428412dc9A"`)
+	err = json.Unmarshal([]byte(`{"Id":"4d88e15b60f486e428412dcZ"}`), &v)
+	c.Assert(err, Matches, `Invalid ObjectId in JSON: "4d88e15b60f486e428412dcZ" \(invalid hex char: 90\)`)
 }

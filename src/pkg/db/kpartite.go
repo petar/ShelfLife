@@ -134,10 +134,10 @@ func (kp *KPartite) GetEdgeTypes() []*EdgeType {
 // Node functions
 
 type NodeDoc struct {
-	ID       bson.ObjectId  "_id"
-	Created  bson.Timestamp "created"
-	Modified bson.Timestamp "modified"
-	Value    interface{}    "value"
+	ID       bson.ObjectId  `bson:"_id"`
+	Created  bson.Timestamp `bson:"created"`
+	Modified bson.Timestamp `bson:"modified"`
+	Value    interface{}    `bson:"value"`
 }
 
 func (kp *KPartite) AddNode(nodeType string, value interface{}) (bson.ObjectId, os.Error) {
@@ -206,12 +206,12 @@ func chooseID() bson.ObjectId {
 // Edge functions
 
 type EdgeDoc struct {
-	ID       bson.ObjectId  "_id"
-	Created  bson.Timestamp "created"
-	Modified bson.Timestamp "modified"
-	From     bson.ObjectId  "from"
-	To       bson.ObjectId  "to"
-	Value    interface{}    "value"
+	ID       bson.ObjectId  `bson:"_id"`
+	Created  bson.Timestamp `bson:"created"`
+	Modified bson.Timestamp `bson:"modified"`
+	From     bson.ObjectId  `bson:"from"`
+	To       bson.ObjectId  `bson:"to"`
+	Value    interface{}    `bson:"value"`
 }
 
 func (kp *KPartite) makeEdgeID(from, to bson.ObjectId) bson.ObjectId {

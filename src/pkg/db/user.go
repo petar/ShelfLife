@@ -12,10 +12,10 @@ import (
 )
 
 type UserDoc struct {
-	Name     string "name"
-	Login    string "login"
-	Email    string "email"
-	Password string "password"
+	Name     string `bson:"name"`
+	Login    string `bson:"login"`
+	Email    string `bson:"email"`
+	Password string `bson:"password"`
 }
 
 // initUser configures the the 'user' collection
@@ -41,8 +41,8 @@ func (db *Db) AddUser(u *UserDoc) (bson.ObjectId, os.Error) {
 }
 
 type userFind struct {
-	ID    bson.ObjectId  "_id"
-	Value UserDoc        "value"
+	ID    bson.ObjectId  `bson:"_id"`
+	Value UserDoc        `bson:"value"`
 }
 
 // FindUserByEmail looks up a user record with the given email.

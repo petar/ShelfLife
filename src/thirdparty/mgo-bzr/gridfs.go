@@ -36,7 +36,6 @@ import (
 	"hash"
 	"github.com/petar/ShelfLife/thirdparty/bson"
 	"os"
-	"runtime"
 	"sync"
 )
 
@@ -77,11 +76,11 @@ type gfsFile struct {
 	Id          interface{}    "_id"
 	ChunkSize   int            "chunkSize"
 	UploadDate  bson.Timestamp "uploadDate"
-	Length      int64          "/s"
+	Length      int64          ",minsize"
 	MD5         string
-	Filename    string    "/c"
-	ContentType string    "contentType/c"
-	Metadata    *bson.Raw "/c"
+	Filename    string    ",omitempty"
+	ContentType string    "contentType,omitempty"
+	Metadata    *bson.Raw ",omitempty"
 }
 
 type gfsChunk struct {
@@ -105,7 +104,7 @@ func newGridFS(db Database, prefix string) *GridFS {
 func (gfs GridFS) newFile() *GridFile {
 	file := &GridFile{gfs: gfs}
 	file.c.L = &file.m
-	runtime.SetFinalizer(file, finalizeFile)
+	//runtime.SetFinalizer(file, finalizeFile)
 	return file
 }
 
@@ -419,6 +418,11 @@ func (file *GridFile) Size() (bytes int64) {
 // MD5 returns the file MD5 as a hex-encoded string.
 func (file *GridFile) MD5() (md5 string) {
 	return file.doc.MD5
+}
+
+// UploadDate returns the file upload time in nanoseconds.
+func (file *GridFile) UploadDate() int64 {
+	return int64(file.doc.UploadDate)
 }
 
 // Close flushes any pending changes in case the file is being written

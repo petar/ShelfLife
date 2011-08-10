@@ -55,12 +55,29 @@ type Getter interface {
 }
 
 // Objects implementing the bson.Setter interface will receive the BSON
-// value via the SetBSON method during unmarshaling, and will not be
-// changed as usual.  If setting the value works, the method should
-// return true.  If it returns false, the given value will be omitted
-// from maps and slices.
+// value via the SetBSON method during unmarshaling, and the object
+// itself will not be changed as usual.
+//
+// If setting the value works, the method should return nil.  If it returns
+// a bson.TypeError value, the BSON value will be omitted from a map or
+// slice being decoded and the unmarshalling will continue.  If it returns
+// any other non-nil error, the unmarshalling procedure will stop and error
+// out with the provided value.
+//
+// Note that this interface is generally useful in pointer receivers, since
+// the method will want to change the receiver.  A type field that implements
+// the Setter interface doesn't have to be a pointer, though.
+//
+// Here is a simple example:
+//
+//     type MyString string
+//
+//     func (s *MyString) SetBSON(raw bson.Raw) os.Error {
+//         return raw.Unmarshal(s)
+//     }
+//
 type Setter interface {
-	SetBSON(v interface{}) (ok bool)
+	SetBSON(raw Raw) os.Error
 }
 
 // Handy alias for a map[string]interface{} map, useful for dealing with BSON
@@ -194,7 +211,31 @@ func NewObjectIdSeconds(sec int32) ObjectId {
 // String returns a hex string representation of the id.
 // Example: ObjectIdHex("4d88e15b60f486e428412dc9").
 func (id ObjectId) String() string {
-	return `ObjectIdHex("` + hex.EncodeToString([]byte(string(id))) + `")`
+	return fmt.Sprintf(`ObjectIdHex("%x")`, string(id))
+}
+
+// Hex returns a hex representation of the ObjectId.
+func (id ObjectId) Hex() string {
+	return hex.EncodeToString([]byte(id))
+}
+
+// MarshalJSON turns *bson.ObjectId into a json.Marshaller.
+func (id *ObjectId) MarshalJSON() ([]byte, os.Error) {
+	return []byte(fmt.Sprintf(`"%x"`, string(*id))), nil
+}
+
+// UnmarshalJSON turns *bson.ObjectId into a json.Unmarshaller.
+func (id *ObjectId) UnmarshalJSON(data []byte) os.Error {
+	if len(data) != 26 || data[0] != '"' || data[25] != '"' {
+		return os.NewError(fmt.Sprintf("Invalid ObjectId in JSON: %s", string(data)))
+	}
+	var buf [12]byte
+	_, err := hex.Decode(buf[:], data[1:25])
+	if err != nil {
+		return os.NewError(fmt.Sprintf("Invalid ObjectId in JSON: %s (%s)", string(data), err))
+	}
+	*id = ObjectId(string(buf[:]))
+	return nil
 }
 
 // Valid returns true if the id is valid (contains exactly 12 bytes)
@@ -317,6 +358,8 @@ func handleErr(err *os.Error) {
 	if r := recover(); r != nil {
 		if _, ok := r.(runtime.Error); ok {
 			panic(r)
+		} else if _, ok := r.(externalPanic); ok {
+			panic(r)
 		} else if s, ok := r.(string); ok {
 			*err = os.NewError(s)
 		} else if e, ok := r.(os.Error); ok {
@@ -330,12 +373,35 @@ func handleErr(err *os.Error) {
 
 // Marshal serializes the in document, which may be a map or a struct value.
 // In the case of struct values, only exported fields will be serialized.
-// These fields may optionally have tags to define the serialization key for
-// the respective fields.  Without a tag, the lowercased field name is used
-// as the key for each field.  If a field tag ends in "/c", that field will
-// only be serialized if it's not set to the zero value for the field type.
-// If a field tag ends with the "/s" suffix, an int64 value in the given
-// field will be serialized as an int32 if possible.
+// The lowercased field name is used as the key for each exported field,
+// but this behavior may be changed using the respective field tag.
+// The tag may also contain flags to tweak the marshalling behavior for
+// the field. The tag formats accepted are:
+//
+//     "[<key>][,<flag1>[,<flag2>]]"
+//
+//     `(...) bson:"[<key>][,<flag1>[,<flag2>]]" (...)`
+//
+// The following flags are currently supported:
+//
+//     omitempty    Only include the field if it's not set to the zero
+//                  value for the type or to empty slices or maps.
+//                  Does not apply to zero valued structs.
+//
+//     minsize      Marshal an int64 value as an int32, if that's feasible
+//                  while preserving the numeric value.
+//
+// Some examples:
+//
+//     type T struct {
+//         A bool
+//         B int    "myb"
+//         C string "myc,omitempty"
+//         D string `bson:",omitempty" json:"jsonkey"`
+//         E int64  ",minsize"
+//         F int64  "myf,omitempty,minsize"
+//     }
+//           
 func Marshal(in interface{}) (out []byte, err os.Error) {
 	defer handleErr(&err)
 	e := &encoder{make([]byte, 0, initialBufferSize)}
@@ -345,15 +411,22 @@ func Marshal(in interface{}) (out []byte, err os.Error) {
 
 // Unmarshal deserializes data from in into the out value.  The out value
 // must be a map or a pointer to a struct (or a pointer to a struct pointer).
-// In the case of struct values, field names are mapped to the struct using
-// the field tag as the key.  If the field has no tag, its lowercased name
-// will be used as the default key.  Nil values are properly initialized
-// when necessary.
+// The lowercased field name is used as the key for each exported field,
+// but this behavior may be changed using the respective field tag.
+// Uninitialized pointer values are properly initialized only when necessary.
 //
-// The target field types of out may not necessarily match the BSON values
-// of the provided data.  If there is a sensible way to unmarshal the values
-// into the Go types, they will be converted.  Otherwise, the incompatible
-// values will be silently skipped.
+// The target field or element types of out may not necessarily match
+// the BSON values of the provided data.  The following conversions are
+// made automatically:
+//
+// - Numeric types are converted if at least the integer part of the
+//   value would be preserved correctly
+// - Bools are converted to numeric types as 1 or 0
+// - Numeric types are converted to bools as true if not 0 or false otherwise
+// - Binary and string BSON data is converted to a string, array or byte slice
+//
+// If the value would not fit the type and cannot be converted, it's silently
+// skipped.
 func Unmarshal(in []byte, out interface{}) (err os.Error) {
 	defer handleErr(&err)
 	v := reflect.ValueOf(out)
@@ -369,23 +442,26 @@ func Unmarshal(in []byte, out interface{}) (err os.Error) {
 	return nil
 }
 
-// Unmarshal deserializes raw into the out value.  In addition to whole
-// documents, Raw's Unmarshal may also be used to unmarshal the data for
-// individual elements within a partially unmarshalled document.  This
-// enables parts of a document to be lazily and conditionally deserialized.
-// 
-// If the out value type is not compatible with raw, a *bson.TypeError
-// is returned.
+// Unmarshal deserializes raw into the out value.  If the out value type
+// is not compatible with raw, a *bson.TypeError is returned.
+//
+// See the Unmarshal function documentation for more details on the
+// unmarshalling process.
 func (raw Raw) Unmarshal(out interface{}) (err os.Error) {
 	defer handleErr(&err)
 	v := reflect.ValueOf(out)
 	switch v.Kind() {
-	case reflect.Map, reflect.Ptr:
+	case reflect.Ptr:
+		v = v.Elem()
+		fallthrough
+	case reflect.Map:
 		d := &decoder{in: raw.Data}
 		good := d.readElemTo(v, raw.Kind)
 		if !good {
 			return &TypeError{v.Type(), raw.Kind}
 		}
+	case reflect.Struct:
+		return os.NewError("Raw Unmarshal can't deal with struct values. Use a pointer.")
 	default:
 		return os.NewError("Raw Unmarshal needs a map or a valid pointer.")
 	}
@@ -412,12 +488,18 @@ type structFields struct {
 type fieldInfo struct {
 	Key         string
 	Num         int
-	Conditional bool
-	Short       bool
+	OmitEmpty   bool
+	MinSize     bool
 }
 
 var fieldMap = make(map[string]*structFields)
 var fieldMapMutex sync.RWMutex
+
+type externalPanic string
+
+func (e externalPanic) String() string {
+	return string(e)
+}
 
 func getStructFields(st reflect.Type) (*structFields, os.Error) {
 	path := st.PkgPath()
@@ -442,22 +524,47 @@ func getStructFields(st reflect.Type) (*structFields, os.Error) {
 
 		info := fieldInfo{Num: i}
 
-		if s := strings.LastIndex(string(field.Tag), "/"); s != -1 {
-			for _, c := range field.Tag[s+1:] {
-				switch c {
-				case int('c'):
-					info.Conditional = true
-				case int('s'):
-					info.Short = true
-				default:
-					panic("Unsupported field flag: " + string([]int{c}))
-				}
-			}
-			field.Tag = field.Tag[:s]
+		tag := field.Tag.Get("bson")
+		if tag == "" && strings.Index(string(field.Tag), ":") < 0 {
+			tag = string(field.Tag)
 		}
 
-		if field.Tag != "" {
-			info.Key = string(field.Tag)
+		// XXX Drop this after a few releases.
+		if s := strings.Index(tag, "/"); s >= 0 {
+			recommend := tag[:s]
+			for _, c := range tag[s+1:] {
+				switch c {
+				case int('c'):
+					recommend += ",omitempty"
+				case int('s'):
+					recommend += ",minsize"
+				default:
+					msg := fmt.Sprintf("Unsupported flag %q in tag %q of type %s", string([]byte{uint8(c)}), tag, st)
+					panic(externalPanic(msg))
+				}
+			}
+			msg := fmt.Sprintf("Replace tag %q in field %s of type %s by %q", tag, field.Name, st, recommend)
+			panic(externalPanic(msg))
+		}
+
+		fields := strings.Split(tag, ",")
+		if len(fields) > 1 {
+			for _, flag := range fields[1:] {
+				switch flag {
+				case "omitempty":
+					info.OmitEmpty = true
+				case "minsize":
+					info.MinSize = true
+				default:
+					msg := fmt.Sprintf("Unsupported flag %q in tag %q of type %s", flag, tag, st)
+					panic(externalPanic(msg))
+				}
+			}
+			tag = fields[0]
+		}
+
+		if tag != "" {
+			info.Key = tag
 		} else {
 			info.Key = strings.ToLower(field.Name)
 		}

@@ -138,10 +138,10 @@ func (e *encoder) addStruct(v reflect.Value) {
 	}
 	for i, info := range fields.List {
 		value := v.Field(i)
-		if info.Conditional && isZero(value) {
+		if info.OmitEmpty && isZero(value) {
 			continue
 		}
-		e.addElem(info.Key, value, info.Short)
+		e.addElem(info.Key, value, info.MinSize)
 	}
 }
 
@@ -187,7 +187,7 @@ func (e *encoder) addElemName(kind byte, name string) {
 	e.addBytes(0)
 }
 
-func (e *encoder) addElem(name string, v reflect.Value, short bool) {
+func (e *encoder) addElem(name string, v reflect.Value, minSize bool) {
 
 	if !v.IsValid() {
 		e.addElemName('\x0A', name)
@@ -195,17 +195,17 @@ func (e *encoder) addElem(name string, v reflect.Value, short bool) {
 	}
 
 	if getter, ok := v.Interface().(Getter); ok {
-		e.addElem(name, reflect.ValueOf(getter.GetBSON()), short)
+		e.addElem(name, reflect.ValueOf(getter.GetBSON()), minSize)
 		return
 	}
 
 	switch v.Kind() {
 
 	case reflect.Interface:
-		e.addElem(name, v.Elem(), short)
+		e.addElem(name, v.Elem(), minSize)
 
 	case reflect.Ptr:
-		e.addElem(name, v.Elem(), short)
+		e.addElem(name, v.Elem(), minSize)
 
 	case reflect.String:
 		s := v.String()
@@ -237,7 +237,7 @@ func (e *encoder) addElem(name string, v reflect.Value, short bool) {
 		u := v.Uint()
 		if int64(u) < 0 {
 			panic("BSON has no uint64 type, and value is too large to fit correctly in an int64")
-		} else if u <= math.MaxInt32 && (short || v.Kind() <= reflect.Uint32) {
+		} else if u <= math.MaxInt32 && (minSize || v.Kind() <= reflect.Uint32) {
 			e.addElemName('\x10', name)
 			e.addInt32(int32(u))
 		} else {
@@ -271,7 +271,7 @@ func (e *encoder) addElem(name string, v reflect.Value, short bool) {
 
 			default:
 				i := v.Int()
-				if short && i >= math.MinInt32 && i <= math.MaxInt32 {
+				if minSize && i >= math.MinInt32 && i <= math.MaxInt32 {
 					// It fits into an int32, encode as such.
 					e.addElemName('\x10', name)
 					e.addInt32(int32(i))

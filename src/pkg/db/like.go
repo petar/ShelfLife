@@ -14,14 +14,14 @@ import (
 // Node document for a foreign (external) object, described by
 // an opaque string foreign ID.
 type ForeignDoc struct {
-	ForeignID string "fid"
+	ForeignID string `bson:"fid"`
 }
 
 // Edge document for user that likes foreign object. The foreign
 // ID is duplicated on the edge for faster queries. It is also present
 // in the target node document.
 type LikeForeignDoc struct {
-	ForeignID string "fid"
+	ForeignID string `bson:"fid"`
 }
 
 // initLike adds and configures the like system database types
@@ -58,8 +58,8 @@ func (db *Db) initLike() os.Error {
 }
 
 type foreignFind struct {
-	ID    bson.ObjectId  "_id"
-	Value ForeignDoc     "value"
+	ID    bson.ObjectId  `bson:"_id"`
+	Value ForeignDoc     `bson:"value"`
 }
 
 // Like updates the databse to indicate that user like foreign object fid.

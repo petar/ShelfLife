@@ -191,6 +191,78 @@ func (s *S) TestInsertFindOneMap(c *C) {
 	c.Assert(result["b"], Equals, 2)
 }
 
+func (s *S) TestFindRef(c *C) {
+	session, err := mgo.Mongo("localhost:40001")
+	c.Assert(err, IsNil)
+	defer session.Close()
+
+	db1 := session.DB("db1")
+	db1col1 := db1.C("col1")
+
+	db2 := session.DB("db2")
+	db2col1 := db2.C("col1")
+
+	db1col1.Insert(M{"_id": 1, "n": 1})
+	db1col1.Insert(M{"_id": 2, "n": 2})
+	db2col1.Insert(M{"_id": 2, "n": 3})
+
+	result := struct{ N int }{}
+
+	ref1 := mgo.DBRef{C: "col1", ID: 1}
+	ref2 := mgo.DBRef{C: "col1", ID: 2, DB: "db2"}
+
+	err = db1.FindRef(ref1, &result)
+	c.Assert(err, IsNil)
+	c.Assert(result.N, Equals, 1)
+
+	err = db1.FindRef(ref2, &result)
+	c.Assert(err, IsNil)
+	c.Assert(result.N, Equals, 3)
+
+	err = db2.FindRef(ref1, &result)
+	c.Assert(err, Equals, mgo.NotFound)
+
+	err = db2.FindRef(ref2, &result)
+	c.Assert(err, IsNil)
+	c.Assert(result.N, Equals, 3)
+
+	err = session.FindRef(ref2, &result)
+	c.Assert(err, IsNil)
+	c.Assert(result.N, Equals, 3)
+
+	err = session.FindRef(ref1, &result)
+	c.Assert(err, Matches, "Can't resolve database for mgo.DBRef{C:\"col1\", ID:1, DB:\"\"}")
+}
+
+func (s *S) TestDatabaseAndCollectionNames(c *C) {
+	session, err := mgo.Mongo("localhost:40001")
+	c.Assert(err, IsNil)
+	defer session.Close()
+
+	db1 := session.DB("db1")
+	db1col1 := db1.C("col1")
+	db1col2 := db1.C("col2")
+
+	db2 := session.DB("db2")
+	db2col1 := db2.C("col3")
+
+	db1col1.Insert(M{"_id": 1})
+	db1col2.Insert(M{"_id": 1})
+	db2col1.Insert(M{"_id": 1})
+
+	names, err := session.DatabaseNames()
+	c.Assert(err, IsNil)
+	c.Assert(names, Equals, []string{"db1", "db2"})
+
+	names, err = db1.CollectionNames()
+	c.Assert(err, IsNil)
+	c.Assert(names, Equals, []string{"col1", "col2", "system.indexes"})
+
+	names, err = db2.CollectionNames()
+	c.Assert(err, IsNil)
+	c.Assert(names, Equals, []string{"col3", "system.indexes"})
+}
+
 func (s *S) TestSelect(c *C) {
 	session, err := mgo.Mongo("localhost:40001")
 	c.Assert(err, IsNil)
@@ -714,6 +786,60 @@ func (s *S) TestFindIterLimitWithBatch(c *C) {
 	c.Assert(stats.ReceivedDocs, Equals, 3)
 	c.Assert(stats.SocketsInUse, Equals, 0)
 }
+
+func (s *S) TestFindIterSortWithBatch(c *C) {
+	session, err := mgo.Mongo("localhost:40001")
+	c.Assert(err, IsNil)
+	defer session.Close()
+
+	coll := session.DB("mydb").C("mycoll")
+
+	ns := []int{40, 41, 42, 43, 44, 45, 46}
+	for _, n := range ns {
+		coll.Insert(M{"n": n})
+	}
+
+	// Without this, the logic above breaks because Mongo refuses to
+	// return a cursor with an in-memory sort.
+	coll.EnsureIndexKey([]string{"n"})
+
+	// Ping the database to ensure the nonce has been received already.
+	c.Assert(session.Ping(), IsNil)
+
+	session.Refresh() // Release socket.
+
+	mgo.ResetStats()
+
+	query := coll.Find(M{"n": M{"$lte": 44}}).Sort(M{"n": -1}).Batch(2)
+	iter, err := query.Iter()
+	c.Assert(err, IsNil)
+
+	ns = []int{46, 45, 44, 43, 42, 41, 40}
+
+	result := struct{ N int }{}
+	for i := 2; i < len(ns); i++ {
+		err = iter.Next(&result)
+		c.Logf("i=%d", i)
+		c.Assert(err, IsNil)
+		c.Assert(result.N, Equals, ns[i])
+		if i == 3 {
+			stats := mgo.GetStats()
+			c.Assert(stats.ReceivedDocs, Equals, 2)
+		}
+	}
+
+	err = iter.Next(&result)
+	c.Assert(err == mgo.NotFound, Equals, true)
+
+	session.Refresh() // Release socket.
+
+	stats := mgo.GetStats()
+	c.Assert(stats.SentOps, Equals, 3)     // 1*QUERY_OP + 2*GET_MORE_OP
+	c.Assert(stats.ReceivedOps, Equals, 3) // and its REPLY_OPs
+	c.Assert(stats.ReceivedDocs, Equals, 5)
+	c.Assert(stats.SocketsInUse, Equals, 0)
+}
+
 
 // Test tailable cursors in a situation where Next has to sleep to
 // respect the timeout requested on Tail.
@@ -1684,7 +1810,7 @@ func (s *S) TestDistinct(c *C) {
 	var result []int
 	err = coll.Find(M{"n": M{"$gt": 2}}).Sort(M{"n": 1}).Distinct("n", &result)
 
-	sort.SortInts(result)
+	sort.IntSlice(result).Sort()
 	c.Assert(result, Equals, []int{3, 4, 6})
 }
 

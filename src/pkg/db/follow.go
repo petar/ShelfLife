@@ -18,7 +18,7 @@ type NotifyMsgDoc struct {
 
 // Edge doc for notify edges user->notify_msg
 type NotifyDoc struct {
-	ForeignID bson.ObjectId "object_id"
+	ForeignID bson.ObjectId `bson:"object_id"`
 }
 
 
@@ -45,11 +45,11 @@ func (db *Db) initFollow() os.Error {
 		return err
 	}
 	// Edge type user->notification showing a user's notifications list
-	et, err := db.kp.AddEdgeType("notify", "user", "notify_msg")
+	et, err = db.kp.AddEdgeType("notify", "user", "notify_msg")
 	if err != nil {
 		return err
 	}
-	index := mgo.Index{
+	index = mgo.Index{
 		Key:        []string{"_id"},
 		Unique:     true,
 		DropDups:   false,

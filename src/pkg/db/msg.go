@@ -13,7 +13,7 @@ import (
 
 // MsgDoc represents a user comment
 type MsgDoc struct {
-	Body string "body"
+	Body string `bson:"body"`
 }
 
 // initMsg adds and configures the messaging system database types

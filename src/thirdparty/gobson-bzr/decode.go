@@ -34,13 +34,13 @@ import (
 	"reflect"
 	"math"
 	"fmt"
+	"sync"
 )
 
 type decoder struct {
 	in []byte
 	i  int
 }
-
 
 // --------------------------------------------------------------------------
 // Some helper functions.
@@ -67,86 +67,191 @@ func settableValueOf(i interface{}) reflect.Value {
 // --------------------------------------------------------------------------
 // Unmarshaling of documents.
 
-func (d *decoder) readDocTo(out reflect.Value) {
-	zeroNilPtr(out)
+const (
+	setterUnknown = iota
+	setterNone
+	setterType
+	setterAddr
+)
 
-	if setter, ok := out.Interface().(Setter); ok {
-		setter.SetBSON(d.readDocD())
-		return
+var setterStyle map[reflect.Type]int
+var setterIface reflect.Type
+var setterMutex sync.RWMutex
+
+func init() {
+	var iface Setter
+	setterIface = reflect.TypeOf(&iface).Elem()
+	setterStyle = make(map[reflect.Type]int)
+}
+
+func getSetter(outt reflect.Type, out reflect.Value) Setter {
+	setterMutex.RLock()
+	style := setterStyle[outt]
+	setterMutex.RUnlock()
+	if style == setterNone {
+		return nil
+	}
+	if style == setterUnknown {
+		setterMutex.Lock()
+		defer setterMutex.Unlock()
+		if outt.Implements(setterIface) {
+			setterStyle[outt] = setterType
+		} else if reflect.PtrTo(outt).Implements(setterIface) {
+			setterStyle[outt] = setterAddr
+		} else {
+			setterStyle[outt] = setterNone
+			return nil
+		}
+		style = setterStyle[outt]
+	}
+	if style == setterAddr {
+		if !out.CanAddr() {
+			return nil
+		}
+		out = out.Addr()
+	} else if outt.Kind() == reflect.Ptr && out.IsNil() {
+		out.Set(reflect.New(outt.Elem()))
+	}
+	return out.Interface().(Setter)
+}
+
+func (d *decoder) readDocTo(out reflect.Value) {
+	var elemType reflect.Type
+	outt := out.Type()
+	outk := outt.Kind()
+
+	for {
+		if outk == reflect.Ptr && out.IsNil() {
+			out.Set(reflect.New(outt.Elem()))
+		}
+		if setter := getSetter(outt, out); setter != nil {
+			var raw Raw
+			d.readDocTo(reflect.ValueOf(&raw))
+			err := setter.SetBSON(raw)
+			if _, ok := err.(*TypeError); err != nil && !ok {
+				panic(err)
+			}
+			return
+		}
+		if outk == reflect.Ptr {
+			out = out.Elem()
+			outt = out.Type()
+			outk = out.Kind()
+			continue
+		}
+		break
 	}
 
-	switch out.Kind() {
-	case reflect.Map:
-		d.readMapDocTo(out)
-	case reflect.Struct:
-		if out.Type() == typeRaw {
-			d.readRawDocTo(out)
-		} else {
-			d.readStructDocTo(out)
-		}
-	case reflect.Ptr:
-		d.readDocTo(out.Elem())
+	var fieldsMap map[string]fieldInfo
+	start := d.i
+
+	switch outk {
 	case reflect.Interface:
 		if !out.IsNil() {
 			panic("Found non-nil interface. Please contact the developers.")
 		}
 		mv := reflect.ValueOf(make(M))
 		out.Set(mv)
-		d.readMapDocTo(mv)
+		out = mv
+		outt = out.Type()
+		outk = outt.Kind()
+		fallthrough
+	case reflect.Map:
+		if outt.Key().Kind() != reflect.String {
+			panic("BSON map must have string keys. Got: " + outt.String())
+		}
+		elemType = outt.Elem()
+		if out.IsNil() {
+			out.Set(reflect.MakeMap(out.Type()))
+		}
+	case reflect.Struct:
+		if outt != typeRaw {
+			fields, err := getStructFields(out.Type())
+			if err != nil {
+				panic(err)
+			}
+			fieldsMap = fields.Map
+		}
 	default:
-		panic("TESTME:" + reflect.ValueOf(out).Type().String())
+		panic("Unsupported document type for unmarshalling: " + out.Type().String())
 	}
-}
 
-func (d *decoder) readMapDocTo(v reflect.Value) {
-	vt := v.Type()
-	if vt.Key().Kind() != reflect.String {
-		panic("BSON map must have string keys. Got: " + v.Type().String())
+	end := d.i - 4 + int(d.readInt32())
+	if end <= d.i || end > len(d.in) || d.in[end-1] != '\x00' {
+		corrupted()
 	}
-	elemType := vt.Elem()
-	if v.IsNil() {
-		v.Set(reflect.MakeMap(v.Type()))
-	}
-	d.readDocWith(func(kind byte, name string) {
-		e := reflect.New(elemType).Elem()
-		if d.readElemTo(e, kind) {
-			v.SetMapIndex(reflect.ValueOf(name), e)
+	for d.in[d.i] != '\x00' {
+		kind := d.readByte()
+		name := d.readCStr()
+		if d.i >= end {
+			corrupted()
 		}
-	})
-}
 
-func (d *decoder) readRawDocTo(out reflect.Value) {
-	start := d.i
-	d.readDocWith(func(kind byte, name string) {
-		d.readElemTo(blackHole, kind)
-	})
-	out.Set(reflect.ValueOf(Raw{0x03, d.in[start:d.i]}))
-}
-
-func (d *decoder) readStructDocTo(out reflect.Value) {
-	fields, err := getStructFields(out.Type())
-	if err != nil {
-		panic(err)
-	}
-	fieldsMap := fields.Map
-	d.readDocWith(func(kind byte, name string) {
-		if info, ok := fieldsMap[name]; ok {
-			d.readElemTo(out.Field(info.Num), kind)
-		} else {
-			d.dropElem(kind)
+		switch outk {
+		case reflect.Map:
+			e := reflect.New(elemType).Elem()
+			if d.readElemTo(e, kind) {
+				out.SetMapIndex(reflect.ValueOf(name), e)
+			}
+		case reflect.Struct:
+			if outt == typeRaw {
+				d.readElemTo(blackHole, kind)
+			} else {
+				if info, ok := fieldsMap[name]; ok {
+					d.readElemTo(out.Field(info.Num), kind)
+				} else {
+					d.dropElem(kind)
+				}
+			}
 		}
-	})
+
+		if d.i >= end {
+			corrupted()
+		}
+	}
+	d.i++ // '\x00'
+	if d.i != end {
+		corrupted()
+	}
+
+	switch outk {
+	case reflect.Struct:
+		if outt == typeRaw {
+			out.Set(reflect.ValueOf(Raw{0x03, d.in[start:d.i]}))
+		}
+	}
 }
 
 func (d *decoder) readArrayDoc(t reflect.Type) interface{} {
 	tmp := make([]reflect.Value, 0, 8)
 	elemType := t.Elem()
-	d.readDocWith(func(kind byte, name string) {
+
+	end := d.i - 4 + int(d.readInt32())
+	if end <= d.i || end > len(d.in) || d.in[end-1] != '\x00' {
+		corrupted()
+	}
+	for d.in[d.i] != '\x00' {
+		kind := d.readByte()
+		for d.i < end && d.in[d.i] != '\x00' {
+			d.i++
+		}
+		if d.i >= end {
+			corrupted()
+		}
+		d.i++
 		e := reflect.New(elemType).Elem()
 		if d.readElemTo(e, kind) {
 			tmp = append(tmp, e)
 		}
-	})
+		if d.i >= end {
+			corrupted()
+		}
+	}
+	d.i++ // '\x00'
+	if d.i != end {
+		corrupted()
+	}
+
 	n := len(tmp)
 	slice := reflect.MakeSlice(t, n, n)
 	for i := 0; i != n; i++ {
@@ -156,6 +261,7 @@ func (d *decoder) readArrayDoc(t reflect.Type) interface{} {
 }
 
 var typeD = reflect.TypeOf(D{})
+var typeSlice = reflect.TypeOf([]interface{}{})
 
 func (d *decoder) readDocD() interface{} {
 	slice := make(D, 0, 8)
@@ -171,12 +277,13 @@ func (d *decoder) readDocD() interface{} {
 
 func (d *decoder) readDocWith(f func(kind byte, name string)) {
 	end := d.i - 4 + int(d.readInt32())
-	if end == d.i || end > len(d.in) || d.in[end-1] != '\x00' {
+	if end <= d.i || end > len(d.in) || d.in[end-1] != '\x00' {
 		corrupted()
 	}
 	for d.in[d.i] != '\x00' {
-		kind, name := d.readElemName()
-		if d.i > end {
+		kind := d.readByte()
+		name := d.readCStr()
+		if d.i >= end {
 			corrupted()
 		}
 		f(kind, name)
@@ -189,7 +296,6 @@ func (d *decoder) readDocWith(f func(kind byte, name string)) {
 		corrupted()
 	}
 }
-
 
 // --------------------------------------------------------------------------
 // Unmarshaling of individual elements within a document.
@@ -240,12 +346,11 @@ func (d *decoder) readElemTo(out reflect.Value, kind byte) (good bool) {
 		case reflect.Slice:
 			in = d.readArrayDoc(outt)
 		default:
-			sliceType := reflect.TypeOf([]interface{}{}) // XXX Cache this.
-			in = d.readArrayDoc(sliceType)
+			in = d.readArrayDoc(typeSlice)
 		}
 	case '\x05': // Binary
 		b := d.readBinary()
-		if b.Kind == 0x00 {
+		if b.Kind == 0x00 || b.Kind == 0x02 {
 			in = b.Data
 		} else {
 			in = b
@@ -287,53 +392,61 @@ func (d *decoder) readElemTo(out reflect.Value, kind byte) (good bool) {
 		panic(fmt.Sprintf("Unknown element kind (0x%02X)", kind))
 	}
 
-	if out.Type() == typeRaw {
+	outt := out.Type()
+
+	if outt == typeRaw {
 		out.Set(reflect.ValueOf(Raw{kind, d.in[start:d.i]}))
 		return true
 	}
 
-	if setter, ok := out.Interface().(Setter); ok {
-		if zeroNilPtr(out) {
-			setter = out.Interface().(Setter)
+	if setter := getSetter(outt, out); setter != nil {
+		err := setter.SetBSON(Raw{kind, d.in[start:d.i]})
+		if err == nil {
+			return true
+		} else if _, ok := err.(*TypeError); !ok {
+			panic(err)
 		}
-		return setter.SetBSON(in)
+		return false
 	}
 
 	if in == nil {
-		out.Set(reflect.Zero(out.Type()))
+		out.Set(reflect.Zero(outt))
 		return true
 	}
 
+	outk := outt.Kind()
+
 	// Dereference and initialize pointer if necessary.
 	first := true
-	for out.Kind() == reflect.Ptr {
+	for outk == reflect.Ptr {
 		if !out.IsNil() {
 			out = out.Elem()
-			continue
-		}
-
-		elem := reflect.New(out.Type().Elem())
-		if first {
-			// Only set if value is compatible.
-			first = false
-			defer func(out, elem reflect.Value) {
-				if good {
-					out.Set(elem)
-				}
-			}(out, elem)
 		} else {
-			out.Set(elem)
+			elem := reflect.New(outt.Elem())
+			if first {
+				// Only set if value is compatible.
+				first = false
+				defer func(out, elem reflect.Value) {
+					if good {
+						out.Set(elem)
+					}
+				}(out, elem)
+			} else {
+				out.Set(elem)
+			}
+			out = elem
 		}
-		out = elem
+		outt = out.Type()
+		outk = outt.Kind()
 	}
 
 	inv := reflect.ValueOf(in)
-	if out.Type() == inv.Type() {
+	if outt == inv.Type() {
 		out.Set(inv)
 		return true
 	}
 
-	switch out.Kind() {
+	switch outk {
 	case reflect.Interface:
 		out.Set(inv)
 		return true
@@ -351,7 +464,7 @@ func (d *decoder) readElemTo(out reflect.Value, kind byte) (good bool) {
 	case reflect.Slice, reflect.Array:
 		// Remember, array (0x04) slices are built with the correct element
 		// type.  If we are here, must be a cross BSON kind conversion.
-		if out.Type().Elem().Kind() == reflect.Uint8 {
+		if outt.Elem().Kind() == reflect.Uint8 {
 			switch inv.Kind() {
 			case reflect.String:
 				slice := []byte(inv.String())
@@ -370,7 +483,7 @@ func (d *decoder) readElemTo(out reflect.Value, kind byte) (good bool) {
 			// MongoDB wants timestamps as milliseconds.
 			// Go likes nanoseconds.  Convert them.
 			// out.Type() == inv.Type() has been handled above.
-			if out.Type() == typeTimestamp {
+			if outt == typeTimestamp {
 				out.SetInt(inv.Int() * 1e6)
 			} else if inv.Type() == typeTimestamp {
 				out.SetInt(inv.Int() / 1e6)
@@ -443,13 +556,8 @@ func (d *decoder) readElemTo(out reflect.Value, kind byte) (good bool) {
 	return false
 }
 
-
 // --------------------------------------------------------------------------
 // Parsers of basic types.
-
-func (d *decoder) readElemName() (kind byte, name string) {
-	return d.readByte(), d.readCStr()
-}
 
 func (d *decoder) readRegEx() RegEx {
 	re := RegEx{}
@@ -480,7 +588,19 @@ func (d *decoder) readStr() string {
 }
 
 func (d *decoder) readCStr() string {
-	return string(d.readBytesUpto('\x00'))
+	start := d.i
+	end := start
+	l := len(d.in)
+	for ; end != l; end++ {
+		if d.in[end] == '\x00' {
+			break
+		}
+	}
+	d.i = end + 1
+	if d.i > l {
+		corrupted()
+	}
+	return string(d.in[start:end])
 }
 
 func (d *decoder) readBool() bool {
@@ -530,20 +650,4 @@ func (d *decoder) readBytes(length int32) []byte {
 		corrupted()
 	}
 	return d.in[start : start+int(length)]
-}
-
-func (d *decoder) readBytesUpto(delimiter byte) []byte {
-	start := d.i
-	end := start
-	l := len(d.in)
-	for ; end != l; end++ {
-		if d.in[end] == delimiter {
-			break
-		}
-	}
-	d.i = end + 1
-	if d.i > l {
-		corrupted()
-	}
-	return d.in[start:end]
 }
