@@ -1,9 +1,6 @@
 
 ————— SHORT TERM —————
 
-* db: update mgo
-* db: update struct tags
-
 * notification
 	* add follow/notify backend
 	* follow button UI
