@@ -6,65 +6,49 @@ package sociability
 
 import (
 	"os"
-	"github.com/petar/GoHTTP/http"
 	"github.com/petar/GoHTTP/server/rpc"
-	"github.com/petar/ShelfLife/db"
 )
 
-// IsFollow returns true if the logged user follows the given object
-func (a *API) IsFollow(args *rpc.Args, r *rpc.Ret) (err os.Error) {
+// FollowInfo returns true if the logged user follows the given object
+func (a *API) FollowInfo(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 
-	user, err := a.whoAmI(args)
+	_, uid, err := a.whoAmI(args)
 	if err != nil {
 		return err
 	}
-	if user == nil {
-		return ErrApp
-	}
+	what, _ := args.QueryString("What")
 
-	what, err := args.String("What")
+	follows, err := a.db.IsFollow(uid, what)
 	if err != nil {
-		return ErrApp
+		follows = false
 	}
-	attr, _ := args.String("Attr")
 
-	ok, err = a.db.IsFollow(user.ID, what, attr)
+	n, err := a.db.FollowerCount(what)
 	if err != nil {
 		return err
 	}
-	r.SetBool("IsFollow", ok)
+
+	r.SetBool("UserFollows", follows)
+	r.SetInt("Count", n)
 
 	return nil
 }
 
-// Follow records that the currently logged user is following the given object
-func (a *API) Follow(args *rpc.Args, r *rpc.Ret) (err os.Error) {
-	
-	user, err := a.whoAmI(args)
+// Follow makes the currently logged user follow the given object
+func (a *API) SetFollow(args *rpc.Args, r *rpc.Ret) (err os.Error) {
+	_, uid, err := a.whoAmI(args)
 	if err != nil {
 		return err
 	}
-	if user == nil {
-		return ErrApp
-	}
+	what, _ := args.QueryString("What")
+	return a.db.SetFollow(uid, what)
+}
 
-	what, err := args.String("What")
-	if err != nil {
-		return ErrApp
-	}
-	attr, _ := args.String("Attr")
-
-	ok, err = a.db.IsFollow(user.ID, what, attr)
+func (a *API) UnsetFollow(args *rpc.Args, r *rpc.Ret) (err os.Error) {
+	_, uid, err := a.whoAmI(args)
 	if err != nil {
 		return err
 	}
-	if ok {
-		return nil
-	}
-
-	if err = a.db.Follow(user.ID, what, attr); err != nil {
-		return err
-	}
-
-	return nil
+	what, _ := args.QueryString("What")
+	return a.db.UnsetFollow(uid, what)
 }

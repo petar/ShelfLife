@@ -6,6 +6,8 @@
 	* follow button UI
 	* notify page UI
 
+* add JS compiler and project makefiles
+
 * doc
 
 * [PROF] why does "like" take a small delay on localhost?

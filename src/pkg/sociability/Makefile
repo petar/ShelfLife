@@ -6,6 +6,7 @@ GOFILES=\
 	enc.go\
 	err.go\
 	like.go\
+	follow.go\
 	login.go\
 	msg.go\
 	pass.go\
