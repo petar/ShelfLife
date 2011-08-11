@@ -79,3 +79,38 @@
 	font: 11px Verdana;
 	color: #ddd;
 }
+
+// follow button style
+
+.button.follow {
+	padding-left: 7px;
+	padding-right: 7px;
+	font: 13px Verdana;
+	background: #ba5;
+	border: 1px solid #a94;
+}
+.button.follow:hover {
+	border: 1px solid #983;
+	opacity: 0.9;
+}
+.button.follow .footnote {
+	font: 11px Verdana;
+	color: #a93;
+}
+
+
+.button.unfollow {
+	padding-left: 7px;
+	padding-right: 7px;
+	font: 13px Verdana;
+	background: #cbb;
+	border: 1px solid #988;
+}
+.button.unfollow:hover {
+	border: 1px solid #544;
+	opacity: 0.9;
+}
+.button.unfollow .footnote {
+	font: 11px Verdana;
+	color: #edd;
+}

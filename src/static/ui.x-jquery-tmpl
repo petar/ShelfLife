@@ -82,3 +82,9 @@ have an account yet.</td></tr>
 		<span id="wrap" class="button like"><span id="action">(Un)like</span><br><span id="footnote" class="footnote">X likes</span></span>
 	</div>
 </script>
+
+<script id="ss-follow-tmpl" type="text/x-jquery-tmpl">
+	<div>
+		<span id="wrap" class="button follow"><span id="action">(Un)follow</span><br><span id="footnote" class="footnote">X followers</span></span>
+	</div>
+</script>
