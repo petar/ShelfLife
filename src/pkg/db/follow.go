@@ -99,7 +99,7 @@ func (db *Db) SetFollow(user bson.ObjectId, foreign string) os.Error {
 	if err != nil {
 		return err
 	}
-	_, err = db.kp.AddOrReplaceEdge("follow", user, id, nil)
+	_, err = db.kp.AddOrReplaceEdge("notify_follow", user, id, nil)
 	return err
 }
 
@@ -108,7 +108,7 @@ func (db *Db) UnsetFollow(user bson.ObjectId, foreign string) os.Error {
 	if err != nil {
 		return err
 	}
-	return db.kp.RemoveEdgeAnchors("follow", user, id)
+	return db.kp.RemoveEdgeAnchors("notify_follow", user, id)
 }
 
 func (db *Db) IsFollow(user bson.ObjectId, foreign string) (bool, os.Error) {
@@ -116,7 +116,7 @@ func (db *Db) IsFollow(user bson.ObjectId, foreign string) (bool, os.Error) {
 	if err != nil {
 		return false, err
 	}
-	return db.kp.IsEdge("follow", user, id)
+	return db.kp.IsEdge("notify_follow", user, id)
 }
 
 func (db *Db) FollowerCount(foreign string) (int, os.Error) {
@@ -124,11 +124,11 @@ func (db *Db) FollowerCount(foreign string) (int, os.Error) {
 	if err != nil {
 		return 0, err
 	}
-	return db.kp.ArrivingDegree("follow", id)
+	return db.kp.ArrivingDegree("notify_follow", id)
 }
 
 func (db *Db) ListFollowed(user bson.ObjectId) ([]bson.ObjectId, os.Error) {
-	q, err := db.kp.LeavingEdges("follow", user)
+	q, err := db.kp.LeavingEdges("notify_follow", user)
 	if err != nil {
 		return nil, err
 	}

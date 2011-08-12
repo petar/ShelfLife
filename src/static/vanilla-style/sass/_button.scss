@@ -86,31 +86,30 @@
 	padding-left: 7px;
 	padding-right: 7px;
 	font: 13px Verdana;
-	background: #ba5;
-	border: 1px solid #a94;
+	background: #6b6;
+	border: 1px solid #393;
 }
 .button.follow:hover {
-	border: 1px solid #983;
+	border: 1px solid #7a7;
 	opacity: 0.9;
 }
 .button.follow .footnote {
 	font: 11px Verdana;
-	color: #a93;
+	color: #9e9;
 }
-
 
 .button.unfollow {
 	padding-left: 7px;
 	padding-right: 7px;
 	font: 13px Verdana;
-	background: #cbb;
-	border: 1px solid #988;
+	background: #bbb;
+	border: 1px solid #888;
 }
 .button.unfollow:hover {
-	border: 1px solid #544;
+	border: 1px solid #444;
 	opacity: 0.9;
 }
 .button.unfollow .footnote {
 	font: 11px Verdana;
-	color: #edd;
+	color: #ddd;
 }

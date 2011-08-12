@@ -5,6 +5,7 @@
 package sociability
 
 import (
+	//"log"
 	"os"
 	"github.com/petar/GoHTTP/server/rpc"
 )

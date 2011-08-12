@@ -432,7 +432,7 @@ function _init(okcb, errcb) {
 
 			render: function() {
 				$(this.el).html($("#ss-follow-tmpl").tmpl());
-				if (!this.like) {
+				if (!this.follow) {
 					this.$("#wrap").addClass("follow");
 					this.$("#wrap").removeClass("unfollow");
 					this.$("#action").text("Follow");
