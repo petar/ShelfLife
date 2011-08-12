@@ -60,6 +60,28 @@
 		already present on the page.
 		</p>
 
+		<h3>Follow button</h3>
+
+		<p>The follow button is part of the Notification System. When a user "follows" an
+		object, they will see all object-related notifications in their news stream.
+		Inserting a follow button UI component is almost identical to inserting a like
+		button. The placeholder for a follow button looks like this:
+
+		<pre>    &lt;div class="inject-follow" fid="isbn:123456789-0"&gt;&lt;/div&gt;</pre>
+
+		Consequently, the initialization script must include a call to
+		<code>ss.ui.showFollowButtons()</code> like so:
+
+<pre>
+&lt;script type="text/javascript"&gt;
+	initSociability(function() {
+		ss.ui.showUserBar($("body"));
+		ss.ui.showLikeButtons();
+		ss.ui.showFollowButtons();
+	}, function() { console.log("Problem initializing Sociability.") });
+&lt;/script&gt;
+</pre>
+
 	</div>
 </body>
 </html>
