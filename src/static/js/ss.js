@@ -159,6 +159,42 @@ function _init(okcb, errcb) {
 				type: "GET",
 				url: "/api/ss/Unlike"
 			});
+		},
+
+		// followInfo
+		followInfo: function(fid, okcb, ecb) {
+			$.ajax({
+				data: { "What": fid, },
+				dataType: "json",
+				error: errcb,
+				success: function(data) { okcb(data.Count, data.Follows === "1"); },
+				type: "GET",
+				url: "/api/ss/FollowInfo"
+			});
+		},
+
+		// setFollow
+		setFollow: function(fid, okcb, ecb) {
+			$.ajax({
+				data: { "What": fid, },
+				dataType: "json",
+				error: errcb,
+				success: okcb,
+				type: "GET",
+				url: "/api/ss/SetFollow"
+			});
+		},
+
+		// unsetFollow
+		unsetFollow: function(fid, okcb, ecb) {
+			$.ajax({
+				data: { "What": fid, },
+				dataType: "json",
+				error: errcb,
+				success: okcb,
+				type: "GET",
+				url: "/api/ss/UnsetFollow"
+			});
 		}
 	};
 
@@ -354,6 +390,62 @@ function _init(okcb, errcb) {
 			}
 		}),
 
+		// FollowButton is the view of the follow button
+		// TODO: This has to extend LikeButton, not copy it
+		FollowButton: Backbone.View.extend({
+
+			tagName: "div",
+
+			events: { 'click': 'click' },
+
+			initialize: function() {
+				this.model = ss.vars.user;
+				_.bindAll(this, 'render', 'refresh', 'update', 'click');
+				this.model.bind('change', this.refresh);
+				this.count = 0;
+				this.follow = false;
+				this.refresh();
+			},
+
+			click: function() {
+				var name = this.model.whoAmI();
+				if (!_.isNull(name)) {
+					if (this.follow) {
+						ss.social.unsetFollow(this.options.fid, this.refresh, function() {});
+					} else {
+						ss.social.setFollow(this.options.fid, this.refresh, function() {});
+					}
+				} else {
+					ss.ui.showMustSignInBox();
+				}
+			},
+
+			refresh: function() {
+				ss.social.followInfo(this.options.fid, this.update, function(){});
+			},
+
+			update: function(count, follow) {
+				this.count = count;
+				this.follow = follow;
+				this.render();
+			},
+
+			render: function() {
+				$(this.el).html($("#ss-follow-tmpl").tmpl());
+				if (!this.like) {
+					this.$("#wrap").addClass("follow");
+					this.$("#wrap").removeClass("unfollow");
+					this.$("#action").text("Follow");
+				} else {
+					this.$("#wrap").addClass("unfollow");
+					this.$("#wrap").removeClass("follow");
+					this.$("#action").text("Unfollow");
+				}
+				this.$("#footnote").text(this.count + " followers");
+				return this;
+			}
+		}),
+
 		// SignUpBox is an overlay UI view that handles the UX for a sign up
 		// TODO: Add an overlay message acknowledging success
 		SignUpBox: Backbone.View.extend({
@@ -477,6 +569,15 @@ function _init(okcb, errcb) {
 			_.each($(".inject-like"), function (q) {
 				$(q).removeClass("inject-like");
 				$(q).prepend((new ss.view.LikeButton({ "fid": $(q).attr("fid") })).render().el);
+			});
+		},
+
+		// showFollowButtons replaces all <div class="inject-follow" fid="..."></div> with a
+		// follow button
+		showFollowButtons: function() {
+			_.each($(".inject-follow"), function (q) {
+				$(q).removeClass("inject-follow");
+				$(q).prepend((new ss.view.FollowButton({ "fid": $(q).attr("fid") })).render().el);
 			});
 		}
 	};

@@ -28,7 +28,7 @@ func (a *API) FollowInfo(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 		return err
 	}
 
-	r.SetBool("UserFollows", follows)
+	r.SetBool("Follows", follows)
 	r.SetInt("Count", n)
 
 	return nil
