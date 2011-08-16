@@ -37,19 +37,93 @@
 	
 	<div class="content">
 		<table style="margin-top: 100px;">
-			<tr><td style="width: 100px;">
+			<tr>
+				<td style="width: 100px;">
 					<div class="inject-like" fid="A"></div>
 					<div class="inject-follow" fid="A"></div>
-			</td><td><p>Hello world! This is object A.</p></td></tr>
-			<tr><td>
+				</td>
+				<td><p>Hello world! This is object A.</p></td>
+				<td>
+
+
+
+
+
+				<div class="ss-msg-thread">
+					<div class="ss-msg ss-msg-first">
+						<div class="ss-msg-head">
+							<span class="ss-msg-nym">toto</span>
+							&middot;
+							<span class="ss-msg-info">3:45pm</span>
+							&middot;
+							<a href="xx">Reply</a>
+						</div>
+						Some comment from me over here!
+					</div>
+					<div class="ss-msg-replies">
+						<div class="ss-submsg">
+							<span class="ss-msg-nym">kiki</span> And
+							there's a response. And this keeps on going
+							to the next line, etc.<br>
+							<span class="ss-msg-info">3:45pm</span>
+						</div>
+						<div class="ss-submsg">
+							<span class="ss-msg-nym">taromasala</span>
+							That's another response to toto's original
+							messaage<br>
+							<span class="ss-msg-info">3:45pm</span>
+						</div>
+						<div class="ss-msg-respond">
+							<textarea></textarea>
+							<span id="reply" class="button small-margin">Reply</span>&nbsp;
+							<span id="cancel" class="button small-margin cancel">Cancel</span>
+						</div>
+					</div>
+					<div class="ss-msg">
+						<div class="ss-msg-head">
+							<span class="ss-msg-nym">toto</span>
+							&middot;
+							<span class="ss-msg-info">3:45pm</span>
+							&middot;
+							<a href="xx">Reply</a>
+						</div>
+						Some comment
+						from me over here! And longer than just one line.
+					</div>
+					<div class="ss-msg-replies">
+						<div class="ss-submsg">
+							<span class="ss-msg-nym">taromasala</span>
+							That's another response to toto's original
+							messaage<br>
+							<span class="ss-msg-info">3:45pm</span>
+						</div>
+					</div>
+					<div class="ss-msg-post">
+						<textarea></textarea>
+						<span id="post" class="button small-margin">Post</span>&nbsp;
+						<span id="cancel" class="button small-margin cancel">Cancel</span>
+					</div>
+				</div>
+
+
+
+
+				</td>
+			</tr>
+			<tr>
+				<td>
 					<div class="inject-like" fid="B"></div>
 					<div class="inject-follow" fid="B"></div>
-			</td><td><p>Foo bar! This is object B.</p></td></tr>
+				</td>
+				<td><p>Foo bar! This is object B.</p></td>
+				<td>Comments:</td>
+			</tr>
 		</table>
 	</div>
 
 	<!-- insert this BEGIN -->
 	<script type="text/javascript" src="/s/js/x/jquery.js"></script>
+	<script type="text/javascript" src="/s/js/x/autoresize.jquery.min.js"></script>
 	<script type="text/javascript" src="/s/js/x/underscore.js"></script>
 	<script type="text/javascript" src="/s/js/x/jquery.tmpl.js"></script>
 	<script type="text/javascript" src="/s/js/x/json2.js"></script>
@@ -61,6 +135,14 @@
 			ss.ui.showLikeButtons();
 			ss.ui.showFollowButtons();
 		}, function() { console.log("Problem initializing Sociability.") });
+
+		$('textarea').autoResize({
+			onResize : function() { $(this).css({opacity:0.8}); },
+			animateCallback : function() { $(this).css({opacity:1}); },
+			animateDuration : 200,
+			extraSpace : 10,
+			limit: 150
+		});
 	</script>
 	<!-- insert this END -->
 </body>

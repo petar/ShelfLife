@@ -1,0 +1,76 @@
+div.ss-msg-thread {
+	font: normal 13px 'Helvetica';
+	color: black;
+
+	width: 300px;
+
+	-moz-border-radius: 7px;
+	-webkit-border-radius: 7px;
+	border-radius: 7px;
+
+	//border: 1px dotted #aaa;
+	-webkit-box-shadow: inset 0px 1px 0px rgba(255,255,255,0.2), 0px 1px 3px rgba(0,0,0,0.25);
+	-moz-box-shadow: inset 0px 1px 0px rgba(255,255,255,0.2), 0px 1px 3px rgba(0,0,0,0.25);
+	box-shadow: inset 0px 1px 0px rgba(255,255,255,0.2), 0px 1px 3px rgba(0,0,0,0.25);
+}
+
+div.ss-msg {
+	padding: 10px;
+	background: none;
+	border-top: 1px dotted #ddd;
+}
+div.ss-msg-first {
+	border: none;
+}
+div.ss-msg-replies {
+	margin-left: 10px;
+	padding-left: 10px;
+}
+div.ss-msg-head {
+	margin-bottom: 3px;
+}
+div.ss-submsg {
+	padding: 10px;
+	padding-left: 2px;
+	background: none;
+	border-top: 1px dotted #ddd;
+}
+
+div.ss-msg-post {
+	border-top: 1px dotted #ddd;
+	margin: 0;
+	padding: 10px;
+}
+div.ss-msg-post textarea {
+	font: inherit;
+	display: block;
+	position: relative;
+	width: 95%;
+	resize: none;
+	padding: 5px;
+	height: 30px;
+}
+
+div.ss-msg-respond {
+	border-top: 1px dotted #ddd;
+	margin: 0;
+	padding: 10px;
+	padding-left: 0px;
+}
+div.ss-msg-respond textarea {
+	font: inherit;
+	display: block;
+	position: relative;
+	width: 95%;
+	resize: none;
+	padding: 5px;
+	height: 30px;
+}
+
+span.ss-msg-nym {
+	font-weight: bold;
+	color: #3b3;
+}
+span.ss-msg-info {
+	color: #bbb;
+}
