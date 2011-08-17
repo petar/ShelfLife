@@ -130,7 +130,7 @@ function _init(okcb, errcb) {
 			$.ajax({
 				data: { "FID": fid, },
 				dataType: "json",
-				error: errcb,
+				error: ecb,
 				success: function(data) { okcb(data.Count, data.Likes === "1"); },
 				type: "GET",
 				url: "/api/ss/LikeInfo"
@@ -142,7 +142,7 @@ function _init(okcb, errcb) {
 			$.ajax({
 				data: { "FID": fid, },
 				dataType: "json",
-				error: errcb,
+				error: ecb,
 				success: okcb,
 				type: "GET",
 				url: "/api/ss/Like"
@@ -154,7 +154,7 @@ function _init(okcb, errcb) {
 			$.ajax({
 				data: { "FID": fid, },
 				dataType: "json",
-				error: errcb,
+				error: ecb,
 				success: okcb,
 				type: "GET",
 				url: "/api/ss/Unlike"
@@ -166,7 +166,7 @@ function _init(okcb, errcb) {
 			$.ajax({
 				data: { "What": fid, },
 				dataType: "json",
-				error: errcb,
+				error: ecb,
 				success: function(data) { okcb(data.Count, data.Follows === "1"); },
 				type: "GET",
 				url: "/api/ss/FollowInfo"
@@ -178,7 +178,7 @@ function _init(okcb, errcb) {
 			$.ajax({
 				data: { "What": fid, },
 				dataType: "json",
-				error: errcb,
+				error: ecb,
 				success: okcb,
 				type: "GET",
 				url: "/api/ss/SetFollow"
@@ -190,7 +190,7 @@ function _init(okcb, errcb) {
 			$.ajax({
 				data: { "What": fid, },
 				dataType: "json",
-				error: errcb,
+				error: ecb,
 				success: okcb,
 				type: "GET",
 				url: "/api/ss/UnsetFollow"
@@ -581,6 +581,9 @@ function _init(okcb, errcb) {
 			});
 		}
 	};
+
+	// XXX: add msg system
+	ssAddMsg();
 
 	// load the UI templates
 	ss.util.loadTemplate('/s/ui.x-jquery-tmpl', okcb, errcb);

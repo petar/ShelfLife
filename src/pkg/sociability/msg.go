@@ -37,6 +37,7 @@ func (a *API) AddMsg(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	return nil
 }
 
+// EditMsg changes the body of an existing message
 func (a *API) EditMsg(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	_, editorID, err := a.whoAmI(args)
 	if err != nil {
