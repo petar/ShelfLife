@@ -12,10 +12,15 @@ QUOTED_GOBIN=$(subst $(space),\ ,$(GOBIN))
 
 all: install
 
-DIRS=\
+XDIRS=\
 	thirdparty/gobson-bzr\
 	thirdparty/mgo-bzr\
 	thirdparty/authcookie-git\
+	pkg/db\
+	pkg/sociability\
+	cmd/server\
+
+DIRS=\
 	pkg/db\
 	pkg/sociability\
 	cmd/server\

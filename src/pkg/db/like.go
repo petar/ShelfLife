@@ -75,7 +75,7 @@ func (db *Db) Like(user bson.ObjectId, fid string) os.Error {
 
 // GetOrMakeForeignID create a node for the given foreign ID and returns its node object ID
 func (db *Db) GetOrMakeForeignID(fid string) (bson.ObjectId, os.Error) {
-	q, err := db.kp.FindNodes("foreign", bson.D{{"fid", fid}})
+	q, err := db.kp.FindNodes("foreign", bson.D{{"value.fid", fid}})
 	if err != nil {
 		return "", err
 	}
@@ -98,7 +98,7 @@ func (db *Db) Unlike(user bson.ObjectId, fid string) os.Error {
 
 // LikeCount returns the number of users that like the foreign object fid
 func (db *Db) LikeCount(fid string) (int, os.Error) {
-	q, err := db.kp.FindEdge("like_foreign", bson.D{{"fid", fid}})
+	q, err := db.kp.FindEdges("like_foreign", bson.D{{"value.fid", fid}})
 	if err != nil {
 		return 0, err
 	}

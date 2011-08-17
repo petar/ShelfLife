@@ -7,6 +7,7 @@ package db
 import (
 	"crypto/sha1"
 	"hash"
+	//"log"
 	"os"
 	"rand"
 	"sync"
@@ -160,8 +161,14 @@ func (kp *KPartite) UpdateNode(nodeType string, nodeID bson.ObjectId, value inte
 	if nt == nil {
 		return ErrType
 	}
+	node, err := kp.FindNode(nodeType, bson.D{{"_id", nodeID}})
+	if err != nil {
+		return err
+	}
 	now := bson.Timestamp(time.Nanoseconds())
-	return nt.C.Update(bson.D{{"_id", nodeID}}, bson.D{{"value", value}, {"modified", now}})
+	node.Modified = now
+	node.Value = value
+	return nt.C.Update(bson.D{{"_id", nodeID}}, node)
 }
 
 func (kp *KPartite) FindNodes(nodeType string, query interface{}) (*mgo.Query, os.Error) {
@@ -169,7 +176,7 @@ func (kp *KPartite) FindNodes(nodeType string, query interface{}) (*mgo.Query, o
 	if nt == nil {
 		return nil, ErrType
 	}
-	return nt.C.Find(rewriteQuery(query)), nil
+	return nt.C.Find(query), nil
 }
 
 func (kp *KPartite) FindNode(nodeType string, query interface{}) (*NodeDoc, os.Error) {
@@ -264,20 +271,36 @@ func (kp *KPartite) UpdateEdge(edgeType string, edgeID bson.ObjectId, value inte
 	if et == nil {
 		return ErrArg
 	}
+	edge, err := kp.FindEdge(edgeType, bson.D{{"_id", edgeID}})
+	if err != nil {
+		return err
+	}
 	now := bson.Timestamp(time.Nanoseconds())
-	return et.C.Update(bson.D{{"_id", edgeID}}, bson.D{{"modified", now}, {"value", value}})
+	edge.Modified = now
+	edge.Value = value
+	return et.C.Update(bson.D{{"_id", edgeID}}, edge)
 }
 
 func (kp *KPartite) UpdateEdgeAnchors(edgeType string, from, to bson.ObjectId, value interface{}) os.Error {
 	return kp.UpdateEdge(edgeType, kp.makeEdgeID(from, to), value)
 }
 
-func (kp *KPartite) FindEdge(edgeType string, query interface{}) (*mgo.Query, os.Error) {
+func (kp *KPartite) FindEdges(edgeType string, query interface{}) (*mgo.Query, os.Error) {
 	et := kp.GetEdgeType(edgeType)
 	if et == nil {
 		return nil, ErrType
 	}
-	return et.C.Find(rewriteQuery(query)), nil
+	return et.C.Find(query), nil
+}
+
+func (kp *KPartite) FindEdge(edgeType string, query interface{}) (*EdgeDoc, os.Error) {
+	q, err := kp.FindEdges(edgeType, query)
+	if err != nil {
+		return nil, err
+	}
+	edgeDoc := &EdgeDoc{}
+	err = q.One(edgeDoc)
+	return edgeDoc, err
 }
 
 func (kp *KPartite) IsEdge(edgeType string, from, to bson.ObjectId) (bool, os.Error) {

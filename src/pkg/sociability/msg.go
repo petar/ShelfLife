@@ -54,6 +54,7 @@ func (a *API) EditMsg(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	return a.db.EditMsg(editorID, ObjectIDOfWebString(msg), body)
 }
 
+// RemoveMsg deletes a message
 func (a *API) RemoveMsg(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	_, editorID, err := a.whoAmI(args)
 	if err != nil {
@@ -87,7 +88,7 @@ func (a *API) FindMsgAttachedTo(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	q := make([]msgJoinJSON, len(joins))
 	for i, join := range joins {
 		q[i].ID = WebStringOfObjectID(join.ID)
-		q[i].Body = join.Body
+		q[i].Body = join.Doc.Body
 		q[i].Author = WebStringOfObjectID(join.Author)
 		q[i].AttachTo = WebStringOfObjectID(join.AttachTo)
 		q[i].ReplyTo = WebStringOfObjectID(join.ReplyTo)

@@ -5,7 +5,7 @@
 package db
 
 import (
-	//"log"
+	"log"
 	"os"
 	"github.com/petar/ShelfLife/thirdparty/bson"
 	"github.com/petar/ShelfLife/thirdparty/mgo"
@@ -112,7 +112,8 @@ func (db *Db) EditMsg(editorID, msgID bson.ObjectId, body string) os.Error {
 	if join.Author != editorID {
 		return ErrSec
 	}
-	return db.kp.UpdateNode("msg", msgID, &MsgDoc{ Body: body })
+	join.Doc.Body = body
+	return db.kp.UpdateNode("msg", msgID, &join.Doc)
 }
 
 // RemoveMsg removes a message and all incident edges
@@ -158,7 +159,7 @@ func (db *Db) FindMsgAttachedTo(attachTo string) ([]*MsgJoin, os.Error) {
 // MsgJoin packs all message information in a single struct 
 type MsgJoin struct {
 	ID       bson.ObjectId  // msg_ID
-	Body     string
+	Doc      MsgDoc
 	Author   bson.ObjectId  // user_ID of author
 	AttachTo bson.ObjectId  // foreign_ID of object the message is attached to
 	ReplyTo  bson.ObjectId  // msg_ID of message replying to
@@ -173,8 +174,7 @@ func (db *Db) joinMsg(msgID bson.ObjectId) (*MsgJoin, os.Error) {
 	if err != nil {
 		return nil, err
 	}
-	// XXX
-	join.Body = (nd.Value).(map[string]interface{})["Body"].(string)
+	join.Doc.Body, _ = (nd.Value).(bson.M)["body"].(string)
 
 	// Find Author
 	ed, err := db.kp.LeavingEdge("msg_written_by", msgID)
@@ -193,9 +193,11 @@ func (db *Db) joinMsg(msgID bson.ObjectId) (*MsgJoin, os.Error) {
 	// Find ReplyTo message
 	ed, err = db.kp.LeavingEdge("msg_replies_to", msgID)
 	if err != nil {
-		return nil, err
+		join.ReplyTo = ""
+	} else {
+		join.ReplyTo = ed.To
 	}
-	join.ReplyTo = ed.To
+	log.Printf("ok")
 
-	return nil, nil
+	return join, nil
 }
