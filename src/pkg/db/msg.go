@@ -5,7 +5,7 @@
 package db
 
 import (
-	"log"
+	//"log"
 	"os"
 	"github.com/petar/ShelfLife/thirdparty/bson"
 	"github.com/petar/ShelfLife/thirdparty/mgo"
@@ -135,6 +135,7 @@ func (db *Db) FindMsgAttachedTo(attachTo string) ([]*MsgJoin, os.Error) {
 	if err != nil {
 		return nil, err
 	}
+
 	// Find messages attached to this object
 	q, err := db.kp.ArrivingEdges("msg_attach_to", fID)
 	if err != nil {
@@ -144,9 +145,10 @@ func (db *Db) FindMsgAttachedTo(attachTo string) ([]*MsgJoin, os.Error) {
 	if err != nil {
 		return nil, err
 	}
+
 	r := make([]*MsgJoin, 0)
 	edgeDoc := &EdgeDoc{}
-	for err = iter.Next(edgeDoc); err != nil; err = iter.Next(edgeDoc) {
+	for err = iter.Next(edgeDoc); err == nil; err = iter.Next(edgeDoc) {
 		join, err := db.joinMsg(edgeDoc.From)
 		if err != nil {
 			continue
@@ -197,7 +199,6 @@ func (db *Db) joinMsg(msgID bson.ObjectId) (*MsgJoin, os.Error) {
 	} else {
 		join.ReplyTo = ed.To
 	}
-	log.Printf("ok")
 
 	return join, nil
 }
