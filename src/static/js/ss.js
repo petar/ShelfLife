@@ -195,9 +195,54 @@ function _init(okcb, errcb) {
 				type: "GET",
 				url: "/api/ss/UnsetFollow"
 			});
+		},
+
+		addMsg: function(attachTo, replyTo, body, okcb, ecb) {
+			$.ajax({
+				data: { "AttachTo": attachTo, "ReplyTo": replyTo, "Body": body },
+				dataType: "json",
+				error: ecb,
+				success: okcb,
+				type: "GET",
+				url: "/api/ss/AddMsg"
+			});
+		},
+
+		editMsg: function(msg, body, okcb, ecb) {
+			$.ajax({
+				data: { "Msg": msg, "Body": body },
+				dataType: "json",
+				error: ecb,
+				success: okcb,
+				type: "GET",
+				url: "/api/ss/EditMsg"
+			});
+		},
+
+		removeMsg: function(msg, okcb, ecb) {
+			$.ajax({
+				data: { "Msg": msg },
+				dataType: "json",
+				error: ecb,
+				success: okcb,
+				type: "GET",
+				url: "/api/ss/RemoveMsg"
+			});
+		},
+
+		findMsgAttachedTo: function(attachTo, okcb, ecb) {
+			$.ajax({
+				data: { "AttachTo": attachTo },
+				dataType: "json",
+				error: ecb,
+				success: okcb,
+				type: "GET",
+				url: "/api/ss/FindMsgAttachedTo"
+			});
 		}
 	};
 
+	// ——— model-begin ——— 
 	// ss.model contains backbone.js models for the various functionalities
 	ss.model = {
 
@@ -238,10 +283,75 @@ function _init(okcb, errcb) {
 				return ss.login.whatIsMyName();
 			}
 
-		})
+		}),
 	
-	};
+		// MsgThread manages the data associated to a single message thread.
+		// MsgThread triggers "change" when the whole set of messages has been fetched from
+		// the server; it triggers "add" when a new message has been added, with one
+		// argument carrying the ID of the msg
+		MsgThread: Backbone.Model.extend({
+		
+			defaults: { "attachTo": null, "data": null, "fetched": false },
 
+			// _msgIDMap maps message IDs to the index (in attribute 'data') of the
+			// corresponding message
+			_msgIDMap: {},
+
+			initialize: function() { 
+				_.bindAll(this, '_bringOK');
+			},
+
+			// bring loads the messages in the thread from the server asynchronously;
+			// when ready, it triggers 'change'
+			bring: function() {
+				var a = this.getAttachTo();
+				if (!_.isString(a)) {
+					console.log("fetching for msg thread without attach-to");
+					return;
+				}
+				ss.social.findMsgAttachedTo(a, this._bringOK,
+					function() { console.log("problem fetching msg thread"); }
+				);
+			},
+			_bringOK: function(result) { 
+				var d = result.Results;
+				this._msgIDMap = {};
+				_.each(d, function(m, i) { this._msgIDMap[m.id] = i }, this);
+				this.set({"data": d, "fetched": true});
+			},
+
+			// add adds the given message; it triggers 'add' after asynchronously receiving
+			// confirmation from the server that the addition was successful
+			add: function() {
+			},
+
+			getAttachTo: function() { return this.get("attachTo"); },
+
+			getLen: function() {
+				var d = this.get("data");
+				if (_.isArray(d)) {
+					return d.length;
+				} else {
+					return 0;
+				}
+			},
+
+			getByIndex: function(i) {
+				var d = this.get("data");
+				if (_.isArray(d)) {
+					return d[i];
+				} else {
+					return undefined;
+				}
+			},
+
+			getByID: function(x) { return this.get("data")[this._msgIDMap[x]]; }
+
+		})
+	};
+	// ——— model-end ——— 
+
+	// ——— view-begin ——— 
 	// ss.view contains all backbone.js views for various UI elements
 	ss.view = {
 		
@@ -534,8 +644,63 @@ function _init(okcb, errcb) {
 			remove: function() {
 				$(this.el).remove();
 			}
-		})
+		}),
+
+		MsgThread: Backbone.View.extend({
+
+			tagName: "div",
+
+			events: { 'click': 'click' },
+
+			initialize: function() {
+				this.model = ss.vars.user;
+				_.bindAll(this, 'render', 'refresh', 'update', 'click');
+				this.model.bind('change', this.refresh);
+				this.count = 0;
+				this.like = false;
+				this.refresh();
+			},
+
+			click: function() {
+				var name = this.model.whoAmI();
+				if (!_.isNull(name)) {
+					if (this.like) {
+						ss.social.unlike(this.options.fid, this.refresh, function() {});
+					} else {
+						ss.social.like(this.options.fid, this.refresh, function() {});
+					}
+				} else {
+					ss.ui.showMustSignInBox();
+				}
+			},
+
+			refresh: function() {
+				ss.social.likeInfo(this.options.fid, this.update, function(){});
+			},
+
+			update: function(count, like) {
+				this.count = count;
+				this.like = like;
+				this.render();
+			},
+
+			render: function() {
+				$(this.el).html($("#ss-like-tmpl").tmpl());
+				if (!this.like) {
+					this.$("#wrap").addClass("like");
+					this.$("#wrap").removeClass("unlike");
+					this.$("#action").text("Like");
+				} else {
+					this.$("#wrap").addClass("unlike");
+					this.$("#wrap").removeClass("like");
+					this.$("#action").text("Unlike");
+				}
+				this.$("#footnote").text(this.count + " likes");
+				return this;
+			}
+		}),
 	};
+	// ——— view-end ——— 
 
 	ss.vars = {
 		// user is the unique global User model, an instance of ss.model.User
@@ -581,9 +746,6 @@ function _init(okcb, errcb) {
 			});
 		}
 	};
-
-	// XXX: add msg system
-	ssAddMsg();
 
 	// load the UI templates
 	ss.util.loadTemplate('/s/ui.x-jquery-tmpl', okcb, errcb);
