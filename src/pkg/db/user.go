@@ -84,3 +84,30 @@ func (db *Db) FindUserByLogin(login string) (u *UserDoc, uid bson.ObjectId, err 
 	}
 	return &uf.Value, uf.ID, nil
 }
+
+func (db *Db) FindUserByID(userID bson.ObjectId) (u *UserDoc, err os.Error) {
+	nd, err := db.kp.FindNode("user", bson.D{{"_id", userID}})
+	if err != nil {
+		return nil, err
+	}
+	return userOfNodeDoc(nd)
+}
+
+func userOfNodeDoc(nd *NodeDoc) (*UserDoc, os.Error) {
+	m := nd.Value.(bson.M)
+	u := &UserDoc{}
+	var ok bool
+	if u.Name, ok = m["name"].(string); !ok {
+		return nil, ErrSem
+	}
+	if u.Login, ok = m["login"].(string); !ok {
+		return nil, ErrSem
+	}
+	if u.Email, ok = m["email"].(string); !ok {
+		return nil, ErrSem
+	}
+	if u.Password, ok = m["password"].(string); !ok {
+		return nil, ErrSem
+	}
+	return u, nil
+}

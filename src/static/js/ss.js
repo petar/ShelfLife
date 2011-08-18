@@ -298,7 +298,7 @@ function _init(okcb, errcb) {
 			_msgIDMap: {},
 
 			initialize: function() { 
-				_.bindAll(this, '_bringOK');
+				_.bindAll(this, '_bringOK', '_addOK');
 			},
 
 			// bring loads the messages in the thread from the server asynchronously;
@@ -322,7 +322,18 @@ function _init(okcb, errcb) {
 
 			// add adds the given message; it triggers 'add' after asynchronously receiving
 			// confirmation from the server that the addition was successful
-			add: function() {
+			add: function(replyTo, body) {
+				ss.social.addMsg(this.get("attachTo"), replyTo, body, this._addOK,
+					function() { console.log("problem adding message"); }
+				);
+			},
+			_addOK: function(r) {
+				var msg = r.Msg;
+				var d = this.get("data");
+				var i = d.length;
+				d.push(msg);
+				this._msgIDMap[msg.id] = i;
+				this.trigger("add", msg);
 			},
 
 			getAttachTo: function() { return this.get("attachTo"); },

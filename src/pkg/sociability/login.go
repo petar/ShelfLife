@@ -112,6 +112,10 @@ func (a *API) whoAmI(args *rpc.Args) (user *db.UserDoc, uid bson.ObjectId, err o
 	return nil, "", nil
 }
 
+func (a *API) whoIsID(userID bson.ObjectId) (user *db.UserDoc, err os.Error) {
+	return a.db.FindUserByID(userID)
+}
+
 // WhoAmI returns the login of the currently signed user
 func (a *API) WhoAmI(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	user, _, err := a.whoAmI(args)

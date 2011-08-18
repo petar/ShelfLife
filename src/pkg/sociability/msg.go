@@ -5,7 +5,7 @@
 package sociability
 
 import (
-	//"log"
+	"log"
 	"os"
 	"github.com/petar/GoHTTP/server/rpc"
 )
@@ -16,7 +16,7 @@ import (
 // with message ID "ReplyTo". AddMsg returns the message ID of the newly added
 // message, in the return field "ID".
 func (a *API) AddMsg(args *rpc.Args, r *rpc.Ret) (err os.Error) {
-	_, authorID, err := a.whoAmI(args)
+	authorDoc, authorID, err := a.whoAmI(args)
 	if err != nil {
 		return err
 	}
@@ -33,7 +33,15 @@ func (a *API) AddMsg(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	if err != nil {
 		return err
 	}
-	r.SetString("ID", WebStringOfObjectID(msgID))
+	j := msgJoinJSON {
+		ID:        WebStringOfObjectID(msgID),
+		Body:      body,
+		AuthorID:  WebStringOfObjectID(authorID),
+		AuthorNym: authorDoc.Login,
+		AttachTo:  attachTo,
+		ReplyTo:   replyTo,
+	}
+	r.SetInterface("Msg", j)
 	return nil
 }
 
@@ -68,12 +76,12 @@ func (a *API) RemoveMsg(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 }
 
 type msgJoinJSON struct {
-	ID       string `json:"id"`
-	Body     string `json:"body"`
-	Author   string `json:"author_id"`
-	//XXX: AuthorUser   string `json:"author_id"`
-	AttachTo string `json:"attach"`
-	ReplyTo  string `json:"reply"`
+	ID        string `json:"id"`
+	Body      string `json:"body"`
+	AuthorID  string `json:"author_id"`
+	AuthorNym string `json:"author_nym"`
+	AttachTo  string `json:"attach"`
+	ReplyTo   string `json:"reply"`
 }
 
 func (a *API) FindMsgAttachedTo(args *rpc.Args, r *rpc.Ret) (err os.Error) {
@@ -87,9 +95,16 @@ func (a *API) FindMsgAttachedTo(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	}
 	q := make([]msgJoinJSON, len(joins))
 	for i, join := range joins {
+		author, err := a.whoIsID(join.Author)
+		if err != nil {
+			log.Printf("Unresolved author ID: %s", join.Author)
+			q[i].AuthorNym = "anonymous"
+		} else {
+			q[i].AuthorNym = author.Login
+		}
 		q[i].ID = WebStringOfObjectID(join.ID)
 		q[i].Body = join.Doc.Body
-		q[i].Author = WebStringOfObjectID(join.Author)
+		q[i].AuthorID = WebStringOfObjectID(join.Author)
 		q[i].AttachTo = WebStringOfObjectID(join.AttachTo)
 		q[i].ReplyTo = WebStringOfObjectID(join.ReplyTo)
 	}

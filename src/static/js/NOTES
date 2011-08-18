@@ -1,4 +1,4 @@
 
-* remove injection tags after injection
+* add time display to messages
 
 * wrap forms in FORM elements so that autocompletion works

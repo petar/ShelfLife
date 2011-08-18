@@ -10,4 +10,5 @@ import (
 
 var (
 	ErrSec   = os.NewError("database denied for security reasons")
+	ErrSem   = os.NewError("database consistency/semantics")
 )
