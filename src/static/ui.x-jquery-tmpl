@@ -90,18 +90,31 @@ have an account yet.</td></tr>
 </script>
 
 
+
+
+
 <script id="ss-msg-thread-tmpl" type="text/x-jquery-tmpl">
 	<div class="ss-msg-thread">
+		<!-- respond box -->
+		<div class="ss-msg-post ss-msg-first">
+			<textarea></textarea>
+			<span id="post" class="button small-margin">Post</span>&nbsp;
+			<span id="cancel" class="button small-margin cancel">Cancel</span>
+		</div>
+	</div>
+</script>
 
-		<div class="ss-msg ss-msg-first">
+<script id="ss-msg-root-tmpl" type="text/x-jquery-tmpl">
+	<div class="ss-msg-root">
+		<div class="ss-msg">
 			<div class="ss-msg-head">
-				<span class="ss-msg-nym">toto</span>
+				<span class="ss-msg-nym">#</span>
 				&middot;
-				<span class="ss-msg-info">3:45pm</span>
+				<span class="ss-msg-info">#</span>
 				&middot;
-				<a href="xx">Reply</a>
+				<a href="??">Reply</a>
 			</div>
-			Some comment from me over here!
+			#
 		</div>
 		<div class="ss-msg-replies" style="display: none">
 			<!-- respond box -->
@@ -111,26 +124,6 @@ have an account yet.</td></tr>
 				<span id="cancel" class="button small-margin cancel">Cancel</span>
 			</div>
 		</div>
-
-		<!-- respond box -->
-		<div class="ss-msg-post">
-			<textarea></textarea>
-			<span id="post" class="button small-margin">Post</span>&nbsp;
-			<span id="cancel" class="button small-margin cancel">Cancel</span>
-		</div>
-	</div>
-</script>
-
-<script id="ss-msg-tmpl" type="text/x-jquery-tmpl">
-	<div class="ss-msg">
-		<div class="ss-msg-head">
-			<span class="ss-msg-nym">#</span>
-			&middot;
-			<span class="ss-msg-info">#</span>
-			&middot;
-			<a href="??">Reply</a>
-		</div>
-		#
 	</div>
 </script>
 

@@ -40,39 +40,42 @@
 			<tr>
 				<td style="vertical-align: top; border: 1px dotted #ddd; padding:
 					10px; background: #fff8f8">
-					<div class="inject-like" fid="A"></div>
-					<div class="inject-follow" fid="A"></div><br>
+					<div class="inject-like" fid="A" style="display: inline-block"></div>
+					<div class="inject-follow" fid="A" style="display:
+						inline-block"></div><br><br>
 
 				<div class="ss-msg-thread">
 
-					<div class="ss-msg ss-msg-first">
-						<div class="ss-msg-head">
-							<span class="ss-msg-nym">toto</span>
-							&middot;
-							<span class="ss-msg-info">3:45pm</span>
-							&middot;
-							<a href="xx">Reply</a>
+					<div class="ss-msg-pkg">
+						<div class="ss-msg ss-msg-first">
+							<div class="ss-msg-head">
+								<span class="ss-msg-nym">toto</span>
+								&middot;
+								<span class="ss-msg-info">3:45pm</span>
+								&middot;
+								<a href="xx">Reply</a>
+							</div>
+							Some comment from me over here!
 						</div>
-						Some comment from me over here!
-					</div>
-					<div class="ss-msg-replies">
-						<div class="ss-msg-re">
-							<span class="ss-msg-nym">kiki</span> And
-							there's a response. And this keeps on going
-							to the next line, etc.<br>
-							<span class="ss-msg-info">3:45pm</span>
-						</div>
-						<div class="ss-msg-re">
-							<span class="ss-msg-nym">taromasala</span>
-							That's another response to toto's original
-							messaage<br>
-							<span class="ss-msg-info">3:45pm</span>
-						</div>
-						<!-- respond box -->
-						<div class="ss-msg-respond">
-							<textarea></textarea>
-							<span id="reply" class="button small-margin">Reply</span>&nbsp;
-							<span id="cancel" class="button small-margin cancel">Cancel</span>
+						<div class="ss-msg-replies">
+							<div class="ss-msg-re">
+								<span class="ss-msg-nym">kiki</span> And
+								there's a response. And this keeps on going
+								to the next line, etc.<br>
+								<span class="ss-msg-info">3:45pm</span>
+							</div>
+							<div class="ss-msg-re">
+								<span class="ss-msg-nym">taromasala</span>
+								That's another response to toto's original
+								messaage<br>
+								<span class="ss-msg-info">3:45pm</span>
+							</div>
+							<!-- respond box -->
+							<div class="ss-msg-respond">
+								<textarea></textarea>
+								<span id="reply" class="button small-margin">Reply</span>&nbsp;
+								<span id="cancel" class="button small-margin cancel">Cancel</span>
+							</div>
 						</div>
 					</div>
 
@@ -108,15 +111,18 @@
 				<td style="width: 20px;">&nbsp;</td>
 				<td style="vertical-align: top; border: 1px dotted #ddd; padding:
 					10px; background: #f8f8ff">
-					<div class="inject-like" fid="B"></div>
-					<div class="inject-follow" fid="B"></div>
+					<div class="inject-like" fid="B" style="display: inline-block"></div>
+					<div class="inject-follow" fid="B" style="display:
+						inline-block"></div><br><br>
 				</td>
 
 				<td style="width: 20px;">&nbsp;</td>
 				<td style="vertical-align: top; border: 1px dotted #ddd; padding:
 					10px; background: #fff8f8">
-					<div class="inject-like" fid="A"></div>
-					<div class="inject-follow" fid="A"></div>
+					<div class="inject-like" fid="A" style="display: inline-block"></div>
+					<div class="inject-follow" fid="A" style="display:
+						inline-block"></div><br><br>
+					<div class="inject-msgthread" fid="A"></div>
 				</td>
 			</tr>
 		</table>
@@ -135,6 +141,7 @@
 			ss.ui.showUserBar($("body"));
 			ss.ui.showLikeButtons();
 			ss.ui.showFollowButtons();
+			ss.ui.showMessageThreads();
 		}, function() { console.log("Problem initializing Sociability.") });
 
 		$('textarea').autoResize({

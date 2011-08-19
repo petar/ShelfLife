@@ -3,7 +3,6 @@
 
 * notification
 	* add follow/notify backend
-	* follow button UI
 	* notify page UI
 
 * add JS compiler and project makefiles

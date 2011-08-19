@@ -356,7 +356,9 @@ function _init(okcb, errcb) {
 				}
 			},
 
-			getByID: function(x) { return this.get("data")[this._msgIDMap[x]]; }
+			getByID: function(x) { return this.get("data")[this._msgIDMap[x]]; },
+
+			getAll: function() { return this.get("data"); }
 
 		})
 	};
@@ -657,65 +659,57 @@ function _init(okcb, errcb) {
 			}
 		}),
 
+		// MsgThread is the view that shows a message thread
 		MsgThread: Backbone.View.extend({
 
 			tagName: "div",
 
-			events: { 'click': 'click' },
+			model: null,
 
+			// Must pass an 'attachTo' option
 			initialize: function() {
-				this.model = ss.vars.user;
-				_.bindAll(this, 'render', 'refresh', 'update', 'click');
-				this.model.bind('change', this.refresh);
-				this.count = 0;
-				this.like = false;
-				this.refresh();
+				this.model = ss.misc.getMsgThreadModel(this.getAttachTo());
+				_.bindAll(this, 'render', '_onChange', '_onAdd');
+				this.model.bind('change', this._onChange);
+				this.model.bind('add', this._onAdd);
 			},
 
-			click: function() {
-				var name = this.model.whoAmI();
-				if (!_.isNull(name)) {
-					if (this.like) {
-						ss.social.unlike(this.options.fid, this.refresh, function() {});
-					} else {
-						ss.social.like(this.options.fid, this.refresh, function() {});
-					}
-				} else {
-					ss.ui.showMustSignInBox();
-				}
-			},
+			getAttachTo: function() { return this.options.attachTo; },
 
-			refresh: function() {
-				ss.social.likeInfo(this.options.fid, this.update, function(){});
-			},
+			_onChange: function() { this.render(); },
 
-			update: function(count, like) {
-				this.count = count;
-				this.like = like;
-				this.render();
-			},
+			_onAdd: function() {},
 
 			render: function() {
-				$(this.el).html($("#ss-like-tmpl").tmpl());
-				if (!this.like) {
-					this.$("#wrap").addClass("like");
-					this.$("#wrap").removeClass("unlike");
-					this.$("#action").text("Like");
-				} else {
-					this.$("#wrap").addClass("unlike");
-					this.$("#wrap").removeClass("like");
-					this.$("#action").text("Unlike");
-				}
-				this.$("#footnote").text(this.count + " likes");
+				$(this.el).html($("#ss-msg-thread-tmpl").tmpl());
+				//this.$("#footnote").text(this.count + " likes");
+				_.each(this.model.getAll(), function() {
+					//??
+				}, this);
 				return this;
-			}
+			},
+
 		}),
 	};
 	// ——— view-end ——— 
 
 	ss.vars = {
 		// user is the unique global User model, an instance of ss.model.User
-		user: new ss.model.User
+		user: new ss.model.User,
+
+		// _msgThreads is a private variable holding all message thread models
+		_msgThreads: {},
+	};
+
+	ss.misc = {
+		getMsgThreadModel: function(attachTo) {
+			var r = ss.vars._msgThreads[attachTo];
+			if (_.isUndefined(r)) {
+				r = new ss.model.MsgThread({"attachTo": attachTo});
+				ss.vars._msgThreads[attachTo];
+			}
+			return r;
+		}
 	};
 
 	ss.ui = {
@@ -755,7 +749,16 @@ function _init(okcb, errcb) {
 				$(q).removeClass("inject-follow");
 				$(q).prepend((new ss.view.FollowButton({ "fid": $(q).attr("fid") })).render().el);
 			});
-		}
+		},
+
+		// showMessageThreads replaces all <div class="inject-msgthread" fid="..."></div> with a
+		// message thread UI
+		showMessageThreads: function() {
+			_.each($(".inject-msgthread"), function (q) {
+				$(q).removeClass("inject-msgthread");
+				$(q).prepend((new ss.view.MsgThread({ "attachTo": $(q).attr("fid") })).render().el);
+			});
+		},
 	};
 
 	// load the UI templates
