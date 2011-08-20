@@ -309,9 +309,7 @@ function _init(okcb, errcb) {
 					console.log("fetching for msg thread without attach-to");
 					return;
 				}
-				ss.social.findMsgAttachedTo(a, this._bringOK,
-					function() { console.log("problem fetching msg thread"); }
-				);
+				ss.social.findMsgAttachedTo(a, this._bringOK);
 			},
 			_bringOK: function(result) { 
 				var d = result.Results;
@@ -323,9 +321,7 @@ function _init(okcb, errcb) {
 			// add adds the given message; it triggers 'add' after asynchronously receiving
 			// confirmation from the server that the addition was successful
 			add: function(replyTo, body) {
-				ss.social.addMsg(this.get("attachTo"), replyTo, body, this._addOK,
-					function() { console.log("problem adding message"); }
-				);
+				ss.social.addMsg(this.get("attachTo"), replyTo, body, this._addOK);
 			},
 			_addOK: function(r) {
 				var msg = r.Msg;
@@ -698,7 +694,6 @@ function _init(okcb, errcb) {
 
 			_onClickPost: function() { 
 				var dText = this.$('.ss-msg-post textarea');
-				console.log('dt='+dText+" t="+dText.val());
 				this.model.add("", dText.val());
 				this._initPostBox();
 			},

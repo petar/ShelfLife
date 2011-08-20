@@ -125,7 +125,29 @@ func (db *Db) RemoveMsg(editorID, msgID bson.ObjectId) os.Error {
 	if join.Author != editorID {
 		return ErrSec
 	}
-	return db.kp.RemoveNode("msg", msgID)
+	que := []bson.ObjectId{msgID}
+	for len(que) > 0 {
+		x := que[0]
+		que = que[1:]
+		q, err := db.kp.ArrivingEdges("msg_replies_to", x)
+		if err != nil {
+			db.kp.RemoveNode("msg", x)
+			continue
+		}
+		// Put messages-in-reply-to-x on to the queue
+		iter, err := q.Iter()
+		if err != nil {
+			db.kp.RemoveNode("msg", x)
+			continue
+		}
+		edgeDoc := &EdgeDoc{}
+		for err = iter.Next(edgeDoc); err == nil; err = iter.Next(edgeDoc) {
+			que = append(que, edgeDoc.From)
+		}
+
+		db.kp.RemoveNode("msg", x)
+	}
+	return nil
 }
 
 // FindMsgAttachedTo returns all messages attached to a given foreign object

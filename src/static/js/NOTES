@@ -1,13 +1,16 @@
 
-* when removing a master, remove all msgs attached to it.
-
 * add remove button, but only if owner logged
+* refuse posting if not logged in
 
-* refuse addition if not logged in
-* remove slow?
+* remove/like slow?
+
+
+
 
 
 
 * add edit button, but only if owner
+* cleanup css on "first" box
+
 * sanitize comment text before posting
 * wrap forms in FORM elements so that autocompletion works
