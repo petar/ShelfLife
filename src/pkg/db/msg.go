@@ -165,6 +165,7 @@ type MsgJoin struct {
 	Author   bson.ObjectId  // user_ID of author
 	AttachTo bson.ObjectId  // foreign_ID of object the message is attached to
 	ReplyTo  bson.ObjectId  // msg_ID of message replying to
+	Modified bson.Timestamp
 }
 
 func (db *Db) joinMsg(msgID bson.ObjectId) (*MsgJoin, os.Error) {
@@ -177,6 +178,7 @@ func (db *Db) joinMsg(msgID bson.ObjectId) (*MsgJoin, os.Error) {
 		return nil, err
 	}
 	join.Doc.Body, _ = (nd.Value).(bson.M)["body"].(string)
+	join.Modified = nd.Modified
 
 	// Find Author
 	ed, err := db.kp.LeavingEdge("msg_written_by", msgID)

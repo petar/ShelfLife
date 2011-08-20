@@ -298,7 +298,7 @@ function _init(okcb, errcb) {
 			_msgIDMap: {},
 
 			initialize: function() { 
-				_.bindAll(this, '_bringOK', '_addOK');
+				_.bindAll(this, '_bringOK', '_addOK', '_removeOK');
 			},
 
 			// bring loads the messages in the thread from the server asynchronously;
@@ -334,6 +334,13 @@ function _init(okcb, errcb) {
 				d.push(msg);
 				this._msgIDMap[msg.id] = i;
 				this.trigger("add", msg);
+			},
+
+			remove: function(msgID) {
+				ss.social.removeMsg(msgID, _.bind(function() { this._removeOK(msgID); }, this));
+			},
+			_removeOK: function(msgID) {
+				this.trigger("remove", msgID);
 			},
 
 			getAttachTo: function() { return this.get("attachTo"); },
@@ -670,6 +677,8 @@ function _init(okcb, errcb) {
 				'click span#reply': '_onClickReply', 
 				'click span#recancel': '_onClickReCancel', 
 				'click #a-reply': '_onClickReplyLink',
+				'click #a-remove': '_onClickRemoveLink',
+				'click #b-remove': '_onClickRemoveLink',
 			},
 
 			model: null,
@@ -677,9 +686,10 @@ function _init(okcb, errcb) {
 			// Must pass an 'attachTo' option
 			initialize: function() {
 				this.model = ss.misc.getMsgThreadModel(this.getAttachTo());
-				_.bindAll(this, 'render', '_onChange', '_onAdd', '_add');
+				_.bindAll(this, 'render', '_onChange', '_onAdd', '_onRemove', '_add');
 				this.model.bind('change', this._onChange);
 				this.model.bind('add', this._onAdd);
+				this.model.bind('remove', this._onRemove);
 			},
 
 			getAttachTo: function() { return this.options.attachTo; },
@@ -687,7 +697,9 @@ function _init(okcb, errcb) {
 			_onChange: function() { this.render(); },
 
 			_onClickPost: function() { 
-				this.model.add("", this.$('.ss-msg-post textarea').val());
+				var dText = this.$('.ss-msg-post textarea');
+				console.log('dt='+dText+" t="+dText.val());
+				this.model.add("", dText.val());
 				this._initPostBox();
 			},
 
@@ -713,6 +725,8 @@ function _init(okcb, errcb) {
 			_initText: function(dText) { 
 				dText.val('');
 				dText.css('height', '30px');
+				/* autoResize does not work when we use val() to change textarea
+				 * contents.
 				dText.autoResize({
 					onResize : function() { $(this).css({opacity:0.8}); },
 					animateCallback : function() { $(this).css({opacity:1}); },
@@ -720,9 +734,15 @@ function _init(okcb, errcb) {
 					extraSpace : 10,
 					limit: 150
 				});
+				*/
 			},
 
 			_onAdd: function(m) { this._add(m); },
+
+			_onRemove: function(msgID) {
+				this.$('.ss-msg-root[msgID='+msgID+']').remove();
+				this.$('.ss-msg-re[msgID='+msgID+']').remove();
+			},
 
 			/* msgJoin = { id, body, author_id, author_nym, attach, reply } */
 			render: function() {
@@ -743,7 +763,10 @@ function _init(okcb, errcb) {
 						dReplies.css("display", "block");
 						var dReBox = $('.ss-msg-rebox', dReplies);
 						var dRe = $("#ss-msg-re-tmpl").tmpl();
+						dRe.attr('msgID', m.id);
+						$('#b-remove', dRe).attr('msgID', m.id);
 						$('.ss-msg-nym', dRe).text(m.author_nym);
+						$('.ss-msg-info', dRe).text(m.modified);
 						$('.ss-msg-body', dRe).text(m.body);
 						dReBox.append(dRe);
 					}
@@ -752,9 +775,11 @@ function _init(okcb, errcb) {
 					dRoot.attr('msgID', m.id);
 					dRoot.attr('authorID', m.author_id);
 					$('.ss-msg-nym', dRoot).text(m.author_nym);
+					$('.ss-msg-info', dRoot).text(m.modified);
 					$('.ss-msg-body', dRoot).text(m.body);
 					$('.ss-msg-respond', dRoot).hide();
 					$('#a-reply', dRoot).attr('msgID', m.id);
+					$('#a-remove', dRoot).attr('msgID', m.id);
 					dBox.append(dRoot);
 					var dReplyText = $('textarea', dRoot);
 					dReplyText.attr('replyTo', m.id);
@@ -765,6 +790,11 @@ function _init(okcb, errcb) {
 			_onClickReplyLink: function(e) {
 				var msgID = $(e.currentTarget).attr('msgID');
 				this.$('.ss-msg-root[msgID='+msgID+'] .ss-msg-respond').show();
+			},
+
+			_onClickRemoveLink: function(e) {
+				var msgID = $(e.currentTarget).attr('msgID');
+				this.model.remove(msgID);
 			}
 
 		}),

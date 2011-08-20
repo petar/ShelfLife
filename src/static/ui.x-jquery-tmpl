@@ -108,18 +108,20 @@ have an account yet.</td></tr>
 
 <script id="ss-msg-root-tmpl" type="text/x-jquery-tmpl">
 	<div class="ss-msg-root">
-		<div class="ss-msg"  onMouseMove="$('.actions', this).show()" onMouseOut="$('.actions', this).hide()">
+		<div class="ss-msg" onMouseMove="$('.actions', this).show()" onMouseOut="$('.actions', this).hide()">
 			<div class="ss-msg-head">
 				<span class="ss-msg-nym">#</span>
 				&middot;
 				<span class="ss-msg-info">1:00pm</span>
 				<span class="actions" style="display: none">
-					&middot;
-					<a id="a-reply" href="javascript:">Reply</a>
-					&middot;
-					<a id="a-remove" href="javascript:">Remove</a>
-					&middot;
-					<a id="a-edit" href="javascript:">Edit</a>
+					<span class="must-be-logged">
+						&middot;
+						<a id="a-reply" href="javascript:">Reply</a>
+					</span>
+					<span class="must-be-owner">
+						&middot;
+						<a id="a-remove" href="javascript:">Remove</a>
+					</span>
 				</span>
 			</div>
 			<div class="ss-msg-body"></div>
@@ -142,10 +144,10 @@ have an account yet.</td></tr>
 		<span class="ss-msg-body">#</span><br>
 		<span class="ss-msg-info">2:00pm</span>
 		<span class="actions" style="display: none">
-			&middot;
-			<a id="b-remove" href="javascript:">Remove</a>
-			&middot;
-			<a id="b-edit" href="javascript:">Edit</a>
+			<span class="must-be-owner">
+				&middot;
+				<a id="b-remove" href="javascript:">Remove</a>
+			</span>
 		</span>
 	</div>
 </script>

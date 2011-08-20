@@ -7,8 +7,12 @@ package sociability
 import (
 	"log"
 	"os"
+	"time"
 	"github.com/petar/GoHTTP/server/rpc"
+	"github.com/petar/ShelfLife/thirdparty/bson"
 )
+
+const msgFormat = "02 Jan 3:04pm"
 
 // AddMsg adds a new message to the database. The author is the currently
 // logged in user. The message is attached to the object given by the string 
@@ -40,6 +44,7 @@ func (a *API) AddMsg(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 		AuthorNym: authorDoc.Login,
 		AttachTo:  attachTo,
 		ReplyTo:   replyTo,
+		Modified:  time.NanosecondsToUTC(int64(bson.Now())).Format(msgFormat),
 	}
 	r.SetInterface("Msg", j)
 	return nil
@@ -82,6 +87,7 @@ type msgJoinJSON struct {
 	AuthorNym string `json:"author_nym"`
 	AttachTo  string `json:"attach"`
 	ReplyTo   string `json:"reply"`
+	Modified  string `json:"modified"`
 }
 
 func (a *API) FindMsgAttachedTo(args *rpc.Args, r *rpc.Ret) (err os.Error) {
@@ -107,6 +113,8 @@ func (a *API) FindMsgAttachedTo(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 		q[i].AuthorID = WebStringOfObjectID(join.Author)
 		q[i].AttachTo = WebStringOfObjectID(join.AttachTo)
 		q[i].ReplyTo = WebStringOfObjectID(join.ReplyTo)
+		modtm := time.NanosecondsToUTC(int64(join.Modified)).Format(msgFormat)
+		q[i].Modified = modtm
 	}
 	r.SetInterface("Results", q)
 	return nil

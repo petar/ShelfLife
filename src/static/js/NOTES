@@ -1,8 +1,13 @@
 
-* add time display to messages
-* add edit button
-* add remove button
-* refuse addition if not logged in
+* when removing a master, remove all msgs attached to it.
 
+* add remove button, but only if owner logged
+
+* refuse addition if not logged in
+* remove slow?
+
+
+
+* add edit button, but only if owner
 * sanitize comment text before posting
 * wrap forms in FORM elements so that autocompletion works
