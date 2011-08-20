@@ -663,13 +663,15 @@ function _init(okcb, errcb) {
 		MsgThread: Backbone.View.extend({
 
 			tagName: "div",
+			
+			events: { 'click span#post': '_onClickPost', 'click span#cancel': '_onClickCancel' },
 
 			model: null,
 
 			// Must pass an 'attachTo' option
 			initialize: function() {
 				this.model = ss.misc.getMsgThreadModel(this.getAttachTo());
-				_.bindAll(this, 'render', '_onChange', '_onAdd');
+				_.bindAll(this, 'render', '_onChange', '_onAdd', '_add', '_onClickPost', '_onClickCancel');
 				this.model.bind('change', this._onChange);
 				this.model.bind('add', this._onAdd);
 			},
@@ -678,16 +680,60 @@ function _init(okcb, errcb) {
 
 			_onChange: function() { this.render(); },
 
-			_onAdd: function() {},
+			_onClickPost: function() { 
+				this.model.add("", this.$('.ss-msg-post textarea').val());
+				this._initPostBox();
+			},
 
+			_onClickCancel: function() { this._initPostBox(); },
+
+			_initPostBox: function() { 
+				var dPost = this.$('.ss-msg-post');
+				var dText = $('textarea', dPost);
+				dText.val('');
+				dText.css('height', '30px');
+				dText.autoResize({
+					onResize : function() { $(this).css({opacity:0.8}); },
+					animateCallback : function() { $(this).css({opacity:1}); },
+					animateDuration : 200,
+					extraSpace : 10,
+					limit: 150
+				});
+			},
+
+			_onAdd: function(m) { this._add(m); },
+
+			/* msgJoin = { id, body, author_id, author_nym, attach, reply } */
 			render: function() {
 				$(this.el).html($("#ss-msg-thread-tmpl").tmpl());
-				//this.$("#footnote").text(this.count + " likes");
-				_.each(this.model.getAll(), function() {
-					//??
-				}, this);
+				this._initPostBox();
+				_.each(this.model.getAll(), this._add);
 				return this;
 			},
+
+			_add: function(m) {
+				var dThread = this.$('.ss-msg-thread');
+				var dBox = $('.ss-msg-box', dThread);
+				if (m.reply != "") {
+					var dRoot = $('.ss-msg-root[msgID='+m.reply+']', dBox);
+					if (!_.isNull(dRoot) && !_.isUndefined(dRoot)) {
+						var dReplies = $('div.ss-msg-replies', dRoot);
+						dReplies.css("display", "block");
+						var dReBox = $('.ss-msg-rebox', dReplies);
+						var dRe = $("#ss-msg-re-tmpl").tmpl();
+						$('.ss-msg-nym', dRe).text(m.author_nym);
+						$('.ss-msg-body', dRe).text(m.body);
+						dReBox.append(dRe);
+					}
+				} else {
+					var dRoot = $("#ss-msg-root-tmpl").tmpl();
+					dRoot.attr('msgID', m.id);
+					dRoot.attr('authorID', m.author_id);
+					$('.ss-msg-nym', dRoot).text(m.author_nym);
+					$('.ss-msg-body', dRoot).text(m.body);
+					dBox.append(dRoot);
+				}
+			}
 
 		}),
 	};
@@ -706,7 +752,7 @@ function _init(okcb, errcb) {
 			var r = ss.vars._msgThreads[attachTo];
 			if (_.isUndefined(r)) {
 				r = new ss.model.MsgThread({"attachTo": attachTo});
-				ss.vars._msgThreads[attachTo];
+				ss.vars._msgThreads[attachTo] = r;
 			}
 			return r;
 		}
