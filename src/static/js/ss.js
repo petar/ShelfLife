@@ -664,14 +664,20 @@ function _init(okcb, errcb) {
 
 			tagName: "div",
 			
-			events: { 'click span#post': '_onClickPost', 'click span#cancel': '_onClickCancel' },
+			events: { 
+				'click span#post': '_onClickPost', 
+				'click span#cancel': '_onClickCancel', 
+				'click span#reply': '_onClickReply', 
+				'click span#recancel': '_onClickReCancel', 
+				'click #a-reply': '_onClickReplyLink',
+			},
 
 			model: null,
 
 			// Must pass an 'attachTo' option
 			initialize: function() {
 				this.model = ss.misc.getMsgThreadModel(this.getAttachTo());
-				_.bindAll(this, 'render', '_onChange', '_onAdd', '_add', '_onClickPost', '_onClickCancel');
+				_.bindAll(this, 'render', '_onChange', '_onAdd', '_add');
 				this.model.bind('change', this._onChange);
 				this.model.bind('add', this._onAdd);
 			},
@@ -687,9 +693,24 @@ function _init(okcb, errcb) {
 
 			_onClickCancel: function() { this._initPostBox(); },
 
-			_initPostBox: function() { 
-				var dPost = this.$('.ss-msg-post');
-				var dText = $('textarea', dPost);
+			_onClickReply: function(e) {
+				var dBox = $(e.currentTarget).parent();
+				var dText = $('textarea', dBox);
+				this.model.add(dText.attr('replyTo'), dText.val());
+				dBox.hide();
+				this._initText(dText);
+			},
+
+			_onClickReCancel: function(e) { 
+				var dBox = $(e.currentTarget).parent();
+				var dText = $('textarea', dBox);
+				dBox.hide();
+				this._initText(dText);
+			},
+
+			_initPostBox: function() { this._initText(this.$('.ss-msg-post textarea')) },
+
+			_initText: function(dText) { 
 				dText.val('');
 				dText.css('height', '30px');
 				dText.autoResize({
@@ -706,14 +727,15 @@ function _init(okcb, errcb) {
 			/* msgJoin = { id, body, author_id, author_nym, attach, reply } */
 			render: function() {
 				$(this.el).html($("#ss-msg-thread-tmpl").tmpl());
-				this._initPostBox();
 				_.each(this.model.getAll(), this._add);
+				this._initPostBox();
 				return this;
 			},
 
 			_add: function(m) {
 				var dThread = this.$('.ss-msg-thread');
 				var dBox = $('.ss-msg-box', dThread);
+				// Reply message
 				if (m.reply != "") {
 					var dRoot = $('.ss-msg-root[msgID='+m.reply+']', dBox);
 					if (!_.isNull(dRoot) && !_.isUndefined(dRoot)) {
@@ -725,14 +747,24 @@ function _init(okcb, errcb) {
 						$('.ss-msg-body', dRe).text(m.body);
 						dReBox.append(dRe);
 					}
-				} else {
+				} else { // Root level message
 					var dRoot = $("#ss-msg-root-tmpl").tmpl();
 					dRoot.attr('msgID', m.id);
 					dRoot.attr('authorID', m.author_id);
 					$('.ss-msg-nym', dRoot).text(m.author_nym);
 					$('.ss-msg-body', dRoot).text(m.body);
+					$('.ss-msg-respond', dRoot).hide();
+					$('#a-reply', dRoot).attr('msgID', m.id);
 					dBox.append(dRoot);
+					var dReplyText = $('textarea', dRoot);
+					dReplyText.attr('replyTo', m.id);
+					this._initText(dReplyText);
 				}
+			},
+
+			_onClickReplyLink: function(e) {
+				var msgID = $(e.currentTarget).attr('msgID');
+				this.$('.ss-msg-root[msgID='+msgID+'] .ss-msg-respond').show();
 			}
 
 		}),
@@ -801,8 +833,10 @@ function _init(okcb, errcb) {
 		// message thread UI
 		showMessageThreads: function() {
 			_.each($(".inject-msgthread"), function (q) {
+				var attachTo = $(q).attr("fid");
 				$(q).removeClass("inject-msgthread");
-				$(q).prepend((new ss.view.MsgThread({ "attachTo": $(q).attr("fid") })).render().el);
+				$(q).prepend((new ss.view.MsgThread({ "attachTo": attachTo })).render().el);
+				ss.misc.getMsgThreadModel(attachTo).bring();
 			});
 		},
 	};

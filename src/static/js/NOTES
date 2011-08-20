@@ -1,6 +1,8 @@
 
 * add time display to messages
 * add edit button
+* add remove button
+* refuse addition if not logged in
 
 * sanitize comment text before posting
 * wrap forms in FORM elements so that autocompletion works

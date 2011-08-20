@@ -98,7 +98,7 @@ have an account yet.</td></tr>
 		<div class="ss-msg-box">
 		</div>
 		<!-- respond box -->
-		<div class="ss-msg-post ss-msg-first">
+		<div class="ss-msg-post">
 			<textarea id="body"></textarea>
 			<span id="post" class="button small-margin">Post</span>&nbsp;
 			<span id="cancel" class="button small-margin cancel">Cancel</span>
@@ -108,32 +108,44 @@ have an account yet.</td></tr>
 
 <script id="ss-msg-root-tmpl" type="text/x-jquery-tmpl">
 	<div class="ss-msg-root">
-		<div class="ss-msg">
+		<div class="ss-msg"  onMouseMove="$('.actions', this).show()" onMouseOut="$('.actions', this).hide()">
 			<div class="ss-msg-head">
 				<span class="ss-msg-nym">#</span>
 				&middot;
 				<span class="ss-msg-info">1:00pm</span>
-				&middot;
-				<a href="??">Reply</a>
+				<span class="actions" style="display: none">
+					&middot;
+					<a id="a-reply" href="javascript:">Reply</a>
+					&middot;
+					<a id="a-remove" href="javascript:">Remove</a>
+					&middot;
+					<a id="a-edit" href="javascript:">Edit</a>
+				</span>
 			</div>
 			<div class="ss-msg-body"></div>
 		</div>
-		<div class="ss-msg-replies" style="display: none">
+		<div class="ss-msg-replies" style="display: block">
 			<div class="ss-msg-rebox"></div>
 			<!-- respond box -->
-			<div class="ss-msg-respond" style="display: none">
+			<div class="ss-msg-respond">
 				<textarea></textarea>
 				<span id="reply" class="button small-margin">Reply</span>&nbsp;
-				<span id="cancel" class="button small-margin cancel">Cancel</span>
+				<span id="recancel" class="button small-margin cancel">Cancel</span>
 			</div>
 		</div>
 	</div>
 </script>
 
 <script id="ss-msg-re-tmpl" type="text/x-jquery-tmpl">
-	<div class="ss-msg-re">
+	<div class="ss-msg-re" onMouseMove="$('.actions', this).show()" onMouseOut="$('.actions', this).hide()">
 		<span class="ss-msg-nym">#</span> 
 		<span class="ss-msg-body">#</span><br>
 		<span class="ss-msg-info">2:00pm</span>
+		<span class="actions" style="display: none">
+			&middot;
+			<a id="b-remove" href="javascript:">Remove</a>
+			&middot;
+			<a id="b-edit" href="javascript:">Edit</a>
+		</span>
 	</div>
 </script>
