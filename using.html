@@ -82,6 +82,44 @@
 &lt;/script&gt;
 </pre>
 
+		<h3>Message threads</h3>
+
+		<p>A message thread (thread, for short) is a multi-user discussion on some topic. A
+		thread can be attached to any object. Sociability offers a UI component that shows
+		the thread associated to any given object (specified by its ID) and allows
+		interaction with it. Threads are inserted into a page in the same way buttons
+		are:</p>
+
+		<pre>    &lt;div class="inject-msgthread" fid="isbn:123456789-0"&gt;&lt;/div&gt;</pre>
+
+		<p>A page may contain multiple threads for different objects, as well as multiple
+		threads for the same object. In the latter case, multiple threads for the same
+		object are visually updated in sync.</p>
+
+		<p>As for buttons, there is a dedicated function
+		<code>ss.ui.showMessageThreads()</code> which converts all 
+		<code>&lt;div class="inject-msgthread"  ...</code> into actual message thread UI components.
+		Typically, it is called at initializtion:
+
+<pre>
+&lt;script type="text/javascript"&gt;
+	initSociability(function() {
+		ss.ui.showUserBar($("body"));
+		ss.ui.showLikeButtons();
+		ss.ui.showFollowButtons();
+		ss.ui.showMessageThreads();
+	}, function() { console.log("Problem initializing Sociability.") });
+&lt;/script&gt;
+</pre>
+
+		<h3>General styling tips</h3>
+
+		<p>All Sociability UI components come fully-styled. Oftentimes, however, you can
+		change some high-level style properties easily by modifying the class or style of
+		the injection <code>div</code>. For example:</p>
+
+		<pre>    &lt;div class="inject-msgthread" fid="obj1" style="width:400px"&gt;&lt;/div&gt;</pre>
+
 	</div>
 </body>
 </html>
