@@ -1,7 +1,6 @@
 
 * remove/like slow?
-* add edit button, but only if owner
-
+* add edit button
 
 * sanitize comment text before posting
 * wrap forms in FORM elements so that autocompletion works
