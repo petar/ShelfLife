@@ -98,7 +98,7 @@ have an account yet.</td></tr>
 		<div class="ss-msg-box">
 		</div>
 		<!-- respond box -->
-		<div class="ss-msg-post">
+		<div class="ss-msg-post ss-msg-topline">
 			<textarea id="body"></textarea>
 			<span id="post" class="button small-margin">Post</span>&nbsp;
 			<span id="cancel" class="button small-margin cancel">Cancel</span>
@@ -108,7 +108,7 @@ have an account yet.</td></tr>
 
 <script id="ss-msg-root-tmpl" type="text/x-jquery-tmpl">
 	<div class="ss-msg-root">
-		<div class="ss-msg" onMouseMove="$('.actions', this).show()" onMouseOut="$('.actions', this).hide()">
+		<div class="ss-msg ss-msg-topline" onMouseMove="$('.actions', this).show()" onMouseOut="$('.actions', this).hide()">
 			<div class="ss-msg-head">
 				<span class="ss-msg-nym">#</span>
 				&middot;
@@ -129,7 +129,7 @@ have an account yet.</td></tr>
 		<div class="ss-msg-replies" style="display: block">
 			<div class="ss-msg-rebox"></div>
 			<!-- respond box -->
-			<div class="ss-msg-respond">
+			<div class="ss-msg-respond ss-msg-topline">
 				<textarea></textarea>
 				<span id="reply" class="button small-margin">Reply</span>&nbsp;
 				<span id="recancel" class="button small-margin cancel">Cancel</span>
@@ -139,7 +139,7 @@ have an account yet.</td></tr>
 </script>
 
 <script id="ss-msg-re-tmpl" type="text/x-jquery-tmpl">
-	<div class="ss-msg-re" onMouseMove="$('.actions', this).show()" onMouseOut="$('.actions', this).hide()">
+	<div class="ss-msg-re ss-msg-topline" onMouseMove="$('.actions', this).show()" onMouseOut="$('.actions', this).hide()">
 		<span class="ss-msg-nym">#</span> 
 		<span class="ss-msg-body">#</span><br>
 		<span class="ss-msg-info">2:00pm</span>

@@ -759,6 +759,7 @@ function _init(okcb, errcb) {
 			_onRemove: function(msgID) {
 				this.$('.ss-msg-root[msgID='+msgID+']').remove();
 				this.$('.ss-msg-re[msgID='+msgID+']').remove();
+				this._cleanTopLine();
 			},
 
 			/* msgJoin = { id, body, author_id, author_nym, attach, reply } */
@@ -805,6 +806,21 @@ function _init(okcb, errcb) {
 					this._initText(dReplyText);
 				}
 				this._onUserChange();
+				this._cleanTopLine();
+			},
+
+			_cleanTopLine: function() {
+				if (this.$('.ss-msg-box div.ss-msg-root').length == 0) {
+					this.$('div.ss-msg-post').removeClass('ss-msg-topline');
+				} else {
+					this.$('div.ss-msg-post').addClass('ss-msg-topline');
+					var cc = this.$('.ss-msg-box div.ss-msg-root div.ss-msg');
+					$(cc[0]).removeClass('ss-msg-topline');
+					for (i = 1; i < cc.length; i++) {
+						$(cc[i]).addClass('ss-msg-topline');
+					}
+
+				}
 			},
 
 			_onUserChange: function() {

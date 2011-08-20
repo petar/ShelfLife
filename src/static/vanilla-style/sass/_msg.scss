@@ -19,7 +19,6 @@ div.ss-msg-thread {
 div.ss-msg {
 	padding: 10px;
 	background: none;
-	border-top: 1px dotted #ddd;
 }
 div.ss-msg-replies {
 	margin-left: 10px;
@@ -32,11 +31,9 @@ div.ss-msg-re {
 	padding: 10px;
 	padding-left: 2px;
 	background: none;
-	border-top: 1px dotted #ddd;
 }
 
 div.ss-msg-post {
-	border-top: 1px dotted #ddd;
 	margin: 0;
 	padding: 10px;
 }
@@ -50,8 +47,10 @@ div.ss-msg-post textarea {
 	height: 30px;
 }
 
-div.ss-msg-respond {
+div.ss-msg-topline {
 	border-top: 1px dotted #ddd;
+}
+div.ss-msg-respond {
 	margin: 0;
 	padding: 10px;
 	padding-left: 0px;
