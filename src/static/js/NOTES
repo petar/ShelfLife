@@ -1,16 +1,8 @@
 
-* add remove button, but only if owner logged
-* refuse posting if not logged in
-
-* remove/like slow?
-
-
-
-
-
-
-* add edit button, but only if owner
 * cleanup css on "first" box
+* remove/like slow?
+* add edit button, but only if owner
+
 
 * sanitize comment text before posting
 * wrap forms in FORM elements so that autocompletion works

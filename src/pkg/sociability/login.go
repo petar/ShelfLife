@@ -45,10 +45,9 @@ func (a *API) SignInLogin(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 		return ErrSec
 	}
 
-	// Set authentication cookie
 	r.AddSetCookie(a.newUserAuthCookie(u))
-	// Set user info cookie
-	r.AddSetCookie(a.newUserInfoCookie(u))
+	r.AddSetCookie(a.newUserNameCookie(u))
+	r.AddSetCookie(a.newUserNymCookie(u))
 
 	return nil
 }
@@ -70,12 +69,23 @@ func (a *API) newUserAuthCookie(u *db.UserDoc) *http.Cookie {
 	}
 }
 
-// newUserInfoCookie returns a new cookie with user information
-func (a *API) newUserInfoCookie(u *db.UserDoc) *http.Cookie {
+// newUserNameCookie returns a new cookie with the user's real name
+func (a *API) newUserNameCookie(u *db.UserDoc) *http.Cookie {
 	duration := 2*OneWeekInSec
 	return &http.Cookie{
-		Name:   "SS-UserInfo",
+		Name:   "SS-UserName",
 		Value:  u.Name,
+		Path:   "/",
+		MaxAge: duration,
+	}
+}
+
+// newUserNymCookie returns a new cookie with user's nym
+func (a *API) newUserNymCookie(u *db.UserDoc) *http.Cookie {
+	duration := 2*OneWeekInSec
+	return &http.Cookie{
+		Name:   "SS-UserNym",
+		Value:  u.Login,
 		Path:   "/",
 		MaxAge: duration,
 	}
@@ -162,10 +172,9 @@ func (a *API) SignInEmail(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 		return ErrSec
 	}
 
-	// Set authentication cookie
 	r.AddSetCookie(a.newUserAuthCookie(u))
-	// Set user info cookie
-	r.AddSetCookie(a.newUserInfoCookie(u))
+	r.AddSetCookie(a.newUserNameCookie(u))
+	r.AddSetCookie(a.newUserNymCookie(u))
 
 	return nil
 }

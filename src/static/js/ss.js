@@ -77,14 +77,22 @@ function _init(okcb, errcb) {
 		// cookies.
 		signOut : function() {
 			ss.util.eraseCookie("SS-UserAuth");
-			ss.util.eraseCookie("SS-UserInfo");
+			ss.util.eraseCookie("SS-UserName");
+			ss.util.eraseCookie("SS-UserNym");
 		},
 
 		// whatIsMyName returns the name of the currently logged in person, or undefined
 		// otherwise.
 		whatIsMyName : function() {
 			if (_.isNull(ss.util.readCookie("SS-UserAuth"))) return null; 
-			return ss.util.readCookie("SS-UserInfo");
+			return ss.util.readCookie("SS-UserName");
+		},
+
+		// whatIsMyNym returns the name of the currently logged in person, or undefined
+		// otherwise.
+		whatIsMyNym : function() {
+			if (_.isNull(ss.util.readCookie("SS-UserAuth"))) return null; 
+			return ss.util.readCookie("SS-UserNym");
 		},
 
 		// signUp registers the user specified by the tuple (name, email, login, password).
@@ -249,12 +257,15 @@ function _init(okcb, errcb) {
 		// User manages user authentication: sign-in, sign-out and sign-up
 		User: Backbone.Model.extend({
 		
-			defaults: { "name": null },		  
+			defaults: { "name": null, "nym": null },		  
 
 			initialize: function() { this._refresh(); },
 
 			_refresh: function() {
-				this.set({"name": ss.login.whatIsMyName()});
+				this.set({
+					"name": ss.login.whatIsMyName(),
+					"nym": ss.login.whatIsMyNym()
+				});
 			},
 
 			// signIn tries to sign the (login,password)
@@ -682,10 +693,11 @@ function _init(okcb, errcb) {
 			// Must pass an 'attachTo' option
 			initialize: function() {
 				this.model = ss.misc.getMsgThreadModel(this.getAttachTo());
-				_.bindAll(this, 'render', '_onChange', '_onAdd', '_onRemove', '_add');
+				_.bindAll(this, 'render', '_onChange', '_onAdd', '_onRemove', '_onUserChange', '_add');
 				this.model.bind('change', this._onChange);
 				this.model.bind('add', this._onAdd);
 				this.model.bind('remove', this._onRemove);
+				ss.vars.user.bind('change', this._onUserChange);
 			},
 
 			getAttachTo: function() { return this.options.attachTo; },
@@ -693,19 +705,29 @@ function _init(okcb, errcb) {
 			_onChange: function() { this.render(); },
 
 			_onClickPost: function() { 
-				var dText = this.$('.ss-msg-post textarea');
-				this.model.add("", dText.val());
-				this._initPostBox();
+				var name = ss.vars.user.whoAmI();
+				if (!_.isNull(name)) {
+					var dText = this.$('.ss-msg-post textarea');
+					this.model.add("", dText.val());
+					this._initPostBox();
+				} else {
+					ss.ui.showMustSignInBox();
+				}
 			},
 
 			_onClickCancel: function() { this._initPostBox(); },
 
 			_onClickReply: function(e) {
-				var dBox = $(e.currentTarget).parent();
-				var dText = $('textarea', dBox);
-				this.model.add(dText.attr('replyTo'), dText.val());
-				dBox.hide();
-				this._initText(dText);
+				var name = ss.vars.user.whoAmI();
+				if (!_.isNull(name)) {
+					var dBox = $(e.currentTarget).parent();
+					var dText = $('textarea', dBox);
+					this.model.add(dText.attr('replyTo'), dText.val());
+					dBox.hide();
+					this._initText(dText);
+				} else {
+					ss.ui.showMustSignInBox();
+				}
 			},
 
 			_onClickReCancel: function(e) { 
@@ -763,6 +785,7 @@ function _init(okcb, errcb) {
 						$('.ss-msg-nym', dRe).text(m.author_nym);
 						$('.ss-msg-info', dRe).text(m.modified);
 						$('.ss-msg-body', dRe).text(m.body);
+						$('.must-be-owner', dRe).attr('ownerNym', m.author_nym);
 						dReBox.append(dRe);
 					}
 				} else { // Root level message
@@ -772,6 +795,7 @@ function _init(okcb, errcb) {
 					$('.ss-msg-nym', dRoot).text(m.author_nym);
 					$('.ss-msg-info', dRoot).text(m.modified);
 					$('.ss-msg-body', dRoot).text(m.body);
+					$('.must-be-owner', dRoot).attr('ownerNym', m.author_nym);
 					$('.ss-msg-respond', dRoot).hide();
 					$('#a-reply', dRoot).attr('msgID', m.id);
 					$('#a-remove', dRoot).attr('msgID', m.id);
@@ -780,6 +804,19 @@ function _init(okcb, errcb) {
 					dReplyText.attr('replyTo', m.id);
 					this._initText(dReplyText);
 				}
+				this._onUserChange();
+			},
+
+			_onUserChange: function() {
+				var d = this.$('.must-be-owner');
+				var nym = ss.login.whatIsMyNym();
+				_.each(d, function(x) {
+					if (_.isNull(nym) || nym != $(x).attr('ownerNym')) {
+						$(x).hide();
+					} else {
+						$(x).show();
+					}
+				});
 			},
 
 			_onClickReplyLink: function(e) {
