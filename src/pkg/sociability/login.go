@@ -48,7 +48,8 @@ func (a *API) SignInLogin(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	r.AddSetCookie(a.newUserAuthCookie(u))
 	r.AddSetCookie(a.newUserNameCookie(u))
 	r.AddSetCookie(a.newUserNymCookie(u))
-
+	
+	r.SetInt("XPad", 0)
 	return nil
 }
 
@@ -175,6 +176,7 @@ func (a *API) SignInEmail(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	r.AddSetCookie(a.newUserAuthCookie(u))
 	r.AddSetCookie(a.newUserNameCookie(u))
 	r.AddSetCookie(a.newUserNymCookie(u))
+	r.SetInt("XPad", 0)
 
 	return nil
 }
@@ -224,6 +226,7 @@ func (a *API) SignUp(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 		return ErrDb
 	}
 
+	r.SetInt("XPad", 0)
 	return nil
 }
 

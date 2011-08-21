@@ -23,6 +23,7 @@ func NewAPI(db *db.Db, loginSecret []byte) *API {
 }
 
 func (a *API) Ping(args *rpc.Args, r *rpc.Ret) os.Error {
+	r.SetInt("XPad", 0)
 	return nil
 }
 
