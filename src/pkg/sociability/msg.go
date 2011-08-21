@@ -64,6 +64,7 @@ func (a *API) EditMsg(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	if err != nil || body == "" {
 		return ErrArg
 	}
+	r.SetInt("XPad", 0)
 	return a.db.EditMsg(editorID, ObjectIDOfWebString(msg), body)
 }
 
@@ -77,6 +78,7 @@ func (a *API) RemoveMsg(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	if err != nil {
 		return err
 	}
+	r.SetInt("XPad", 0)
 	return a.db.RemoveMsg(editorID, ObjectIDOfWebString(msg))
 }
 

@@ -42,6 +42,7 @@ func (a *API) SetFollow(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 		return err
 	}
 	what, _ := args.QueryString("What")
+	r.SetInt("XPad", 0)
 	return a.db.SetFollow(uid, what)
 }
 
@@ -51,5 +52,6 @@ func (a *API) UnsetFollow(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 		return err
 	}
 	what, _ := args.QueryString("What")
+	r.SetInt("XPad", 0)
 	return a.db.UnsetFollow(uid, what)
 }

@@ -232,7 +232,7 @@ function _init(okcb, errcb) {
 				data: { "Msg": msg },
 				dataType: "json",
 				error: ecb,
-				success: okcb,
+				success: okcb, 
 				type: "GET",
 				url: "/api/ss/RemoveMsg"
 			});
