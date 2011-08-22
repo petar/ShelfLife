@@ -1,5 +1,6 @@
 
 * add edit button
+* attach like and follow buttons to a common model
 
 * sanitize comment text before posting
 * wrap forms in FORM elements so that autocompletion works

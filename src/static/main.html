@@ -62,6 +62,9 @@
 					<div class="inject-follow" fid="A" style="display:
 						inline-block"></div><br><br>
 					<div class="inject-msgthread" fid="A"></div>
+
+					<br>
+					<div id="counter"></div>
 				</td>
 			</tr>
 		</table>
@@ -81,6 +84,7 @@
 			ss.ui.showLikeButtons();
 			ss.ui.showFollowButtons();
 			ss.ui.showMessageThreads();
+			ss.misc.bindMsgThreadChange("A", function(n) { $('#counter').html(n); });
 		}, function() { console.log("Problem initializing Sociability.") });
 
 		$('textarea').autoResize({

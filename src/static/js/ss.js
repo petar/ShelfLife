@@ -304,10 +304,6 @@ function _init(okcb, errcb) {
 		
 			defaults: { "attachTo": null, "data": null, "fetched": false },
 
-			// _msgIDMap maps message IDs to the index (in attribute 'data') of the
-			// corresponding message
-			_msgIDMap: {},
-
 			initialize: function() { 
 				_.bindAll(this, '_bringOK', '_addOK', '_removeOK');
 			},
@@ -324,9 +320,9 @@ function _init(okcb, errcb) {
 			},
 			_bringOK: function(result) { 
 				var d = result.Results;
-				this._msgIDMap = {};
-				_.each(d, function(m, i) { this._msgIDMap[m.id] = i }, this);
-				this.set({"data": d, "fetched": true});
+				var data = {};
+				_.each(d, function(m) { data[m.id] = m }, this);
+				this.set({"data": data, "fetched": true});
 			},
 
 			// add adds the given message; it triggers 'add' after asynchronously receiving
@@ -337,9 +333,7 @@ function _init(okcb, errcb) {
 			_addOK: function(r) {
 				var msg = r.Msg;
 				var d = this.get("data");
-				var i = d.length;
-				d.push(msg);
-				this._msgIDMap[msg.id] = i;
+				d[msg.id] = msg;
 				this.trigger("add", msg);
 			},
 
@@ -347,33 +341,27 @@ function _init(okcb, errcb) {
 				ss.social.removeMsg(msgID, _.bind(function() { this._removeOK(msgID); }, this));
 			},
 			_removeOK: function(msgID) {
-				this.trigger("remove", msgID);
+				this._removeMsg(msgID);
+				this.trigger("msg:remove", msgID);
+			},
+			_removeMsg: function(msgID) {
+				var q = [msgID];
+				var d = this.get('data');
+				while (q.length > 0) {
+					var mid = q.pop();
+					var msg = d[mid];
+					delete d[mid];
+					_.each(_.values(d), function(g) { 
+						if (g.reply == mid) { q.push(g.id); }
+					});
+				}
 			},
 
 			getAttachTo: function() { return this.get("attachTo"); },
 
-			getLen: function() {
-				var d = this.get("data");
-				if (_.isArray(d)) {
-					return d.length;
-				} else {
-					return 0;
-				}
-			},
+			getLen: function() { return _.size(this.get("data")); },
 
-			getByIndex: function(i) {
-				var d = this.get("data");
-				if (_.isArray(d)) {
-					return d[i];
-				} else {
-					return undefined;
-				}
-			},
-
-			getByID: function(x) { return this.get("data")[this._msgIDMap[x]]; },
-
-			getAll: function() { return this.get("data"); }
-
+			getAll: function() { return _.values(this.get("data")); }
 		})
 	};
 	// ——— model-end ——— 
@@ -696,7 +684,7 @@ function _init(okcb, errcb) {
 				_.bindAll(this, 'render', '_onChange', '_onAdd', '_onRemove', '_onUserChange', '_add');
 				this.model.bind('change', this._onChange);
 				this.model.bind('add', this._onAdd);
-				this.model.bind('remove', this._onRemove);
+				this.model.bind('msg:remove', this._onRemove);
 				ss.vars.user.bind('change', this._onUserChange);
 			},
 
@@ -865,6 +853,14 @@ function _init(okcb, errcb) {
 				ss.vars._msgThreads[attachTo] = r;
 			}
 			return r;
+		},
+
+		bindMsgThreadChange: function(attachTo, onCountChange) {
+			var m = ss.misc.getMsgThreadModel(attachTo);
+			var f = function() { onCountChange(m.getLen()); };
+			m.bind('msg:remove', f);
+			m.bind('change', f);
+			m.bind('add', f);
 		}
 	};
 
