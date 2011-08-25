@@ -580,7 +580,7 @@ function _init(okcb, errcb) {
 			events: { 'click #ok': 'ok', 'click #cancel': 'cancel' },
 
 			initialize: function() {
-				_.bindAll(this, 'ok', 'cancel', 'render', '_signUpOk', '_signUpErr');
+				_.bindAll(this, 'ok', 'cancel', 'render', '_signUpOk', '_signUpOkEnd', '_signUpErr');
 				this.model = ss.vars.user;
 			},
 			
@@ -597,7 +597,7 @@ function _init(okcb, errcb) {
 				var u = this.$("#u").val()
 				var p = this.$("#p").val()
 				this.model.signOut();
-				this.model.signUp(n, e, u, p, this._signUpOk, this._signUpErr);
+				this.model.signUp(n, e, u, p, _.bind(function() { this._signUpOk(u, p) }, this), this._signUpErr);
 			},
 
 			cancel: function() { 
@@ -619,7 +619,10 @@ function _init(okcb, errcb) {
 				}
 			},
 
-			_signUpOk: function() {
+			_signUpOk: function(user, pass) {
+				ss.vars.user.signIn(user, pass, this._signUpOkEnd, this._signUpOkEnd);
+			},
+			_signUpOkEnd: function() {
 				this.remove();
 			},
 

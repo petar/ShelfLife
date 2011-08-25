@@ -9,7 +9,7 @@
 				<li id="sign-out"><a class="boxing"
 					href="javascript:ss.vars.user.signOut()"><span class="ss-box-h">Sign out</span></a></li>
 				<li id="sign-up"><a class="boxing"
-					href="javascript:ss.ui.showSignUpBox()"><span class="ss-box-h">Sign up</span></a></li>
+					href="javascript:ss.ui.showSignUpBox()"><span class="ss-box-h">Join</span></a></li>
 				<li>&nbsp;</li>
 			</ol>
 		</div>
@@ -53,7 +53,7 @@
 				</td></tr>
 				<tr><td colspan=2 class="msg">
 						<span id="err0" class="errmsg" style="display: none">Sign up failed. A user
-						with identical username of email may already exist.</span>
+						with identical username or email may already exist.</span>
 				</td></tr>
 			</table>
 		</div>
