@@ -35,7 +35,7 @@ func (a *API) Like(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 	if err != nil {
 		return err
 	}
-	r.SetInt("XPad", 0)
+	//r.SetInt("XPad", 0)
 	return a.db.Like(uid, fid)
 }
 

@@ -44,7 +44,7 @@ func (a *API) AddMsg(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 		AuthorNym: authorDoc.Login,
 		AttachTo:  attachTo,
 		ReplyTo:   replyTo,
-		Modified:  time.NanosecondsToUTC(int64(bson.Now())).Format(msgFormat),
+		Modified:  time.NanosecondsToLocalTime(int64(bson.Now())).Format(msgFormat),
 	}
 	r.SetInterface("Msg", j)
 	return nil
@@ -115,7 +115,7 @@ func (a *API) FindMsgAttachedTo(args *rpc.Args, r *rpc.Ret) (err os.Error) {
 		q[i].AuthorID = WebStringOfObjectID(join.Author)
 		q[i].AttachTo = WebStringOfObjectID(join.AttachTo)
 		q[i].ReplyTo = WebStringOfObjectID(join.ReplyTo)
-		modtm := time.NanosecondsToUTC(int64(join.Modified)).Format(msgFormat)
+		modtm := time.NanosecondsToLocalTime(int64(join.Modified)).Format(msgFormat)
 		q[i].Modified = modtm
 	}
 	r.SetInterface("Results", q)
