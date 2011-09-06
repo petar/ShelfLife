@@ -54,7 +54,10 @@ div.content {
 	margin: auto auto;
 	width: 700px;
 	margin-bottom: 170px;
-	padding: 5px;
+	padding: 10px;
+	-webkit-border-radius: 7px;
+	-moz-border-radius: 7px;
+	border-radius: 7px;
 	background: #fff;
 }
 div.content p { background: inherit; }

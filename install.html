@@ -14,10 +14,60 @@
 
 <body>
 	<div class="content">
-		<h2>Overview</h2>
-		<p>In so many words, Sociability adds social interactivity to any website
-		out-of-the-box.
-		Many websites, like <a href="http://arxiv.org">arxiv.org</a>, serve </p>
+		<h2>Installation</h2>
+		<h3>Building the server</h3>
+		<ol>
+			<li>Download and install the <a href="http://golang.org">Go Language</a>, following the simple instructions
+			on <a href="http://golang.org">golang.org</a>.</li>
+			<li>Install <a href="http://www.mongodb.org">MongoDB</a>, and
+			place the MongoDB binaries in your <code>PATH</code> environment
+			variable.</li>
+			<li>Install the <a href="http://compass-style.org/">Compass</a> stylesheet compiler.</li>
+			<li>Fetch the Sociability sources by
+			cloning the current source tree. Use:
+			<pre>git clone http://github.com/petar/ShelfLife ShelfLife</pre>
+			Also make sure that the environment variable <code>SHELFLIFE</code> points
+			to the root directory of the source tree (the directory you just cloned from
+			GitHub).
+			</li>
+			<li>Build the server:
+<pre>cd $SHELFLIFE/src
+make && make install</pre></li>
+			<li>Compile the stylesheets:
+<pre>compass compile $SHELFLIFE/src/static/vanilla-style</pre>
+			</li>
+		</ol>
+
+		<h3>Running the server</h3>
+
+		<ol>
+			<li>First, you need to start the MongoDB server. E.g.
+			<pre>mongod --dbpath $SHELFLIFE_DB_DIR --port 22000</pre>
+			Here <code>$SHELFLIFE_DB_DIR</code> is the directory which you
+			dedicate to Sociability's database files. This can be any directory
+			of your choice.
+			</li>
+
+			<li>Run the compiled Sociability server executable:
+<pre>$SHELFLIFE/src/cmd/server/shelf-server \
+	-bind=:3030 \
+	-db=127.0.0.1:22000 \
+	-parallel=5 \
+	-static=$SHELFLIFE/src/static</pre>
+			<p>As you can see this executable takes four parameters. The <code>-bind</code>
+			parameter specifies the TCP address to which the Sociability HTTP server
+			will bind.
+			</p>
+			<p>The <code>-db</code> parameter specifies the TCP address of the MongoDB
+			database. This is typically localhost. Note that the port must be specified
+			and must match the port used in running the MongoDB server above.</p>
+			<p>The <code>-parallel</code> parameter is an integer specifying the number
+			of requests to be processed in parallel. It's optimal value is best
+			discovered experimentally. A value of 5 is a good default.</p>
+			<p>The <code>-static</code> parameter points to the directory holding the
+			static files of Sociability.</p>
+			</li>
+		</ol>
 
 	</div>
 </body>
