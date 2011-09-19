@@ -16,8 +16,69 @@
 	<div class="content">
 		<h2>Architecture</h2>
 		<p>Sociability comes in two parts: front-end (client side) and back-end
-		(server-side).</p>
+		(server-side). The backend includes a MongoDB database which is used for
+		storting all user and activity data and an HTTP server ("server" for short)
+		which services Ajax API requests from the client as well as requests 
+		for some static resources like style sheets. Schematically, the paths of
+		communication look like this:</p>
+		<pre>Front-end (Browser JS) <-- TCP --> Server (Go Language) <-- TCP --> MongoDB</pre>
+		
+		<p>The basic idea is that the server is in charge of performing upon request all social
+		functions, like <code>Like(user, object)</code> which when called stores the fact
+		that <code>user</code> likes <code>object</code> in the persistent database.
+		These functions are exposed as AJAX calls.
+		</p>
 
+		<p>On the client side, we have a JavaScript library which facilitates the
+		interaction with the server and provides some useful out-of-the-box UI components.
+		The client side JS has two types of functions. There are low-level functions which
+		do nothing more than wrap all AJAX server calls in convenient JS functions. And
+		there are higher level functions, which wrap user information in <a
+			href="">backbone.js</a> models and views.</p>
+
+		<p>Every sociability feature, like the Likes System e.g., has some respective code
+		on the client side and the server side and has a representation in the database.
+		We are going to briefly walk through an example which will sketch out all three
+		parts of a feature and will demonstrate the general structure of the code. But
+		first we cover some preliminaries of Sociability's internal design.</p>
+
+		<h3>Sociability code structure</h3>
+		There are four subdirectories inside <code>src</code>
+<pre>
+cmd          Source code for the server exetuable
+pkg          Sociability-specific Go Libraries
+static       Static files (like stylesheets) served by the server
+thirdparty   Third-party Go Language libraries
+</pre>
+		<p><code>static</code> contains various resources, essentially text files, that are
+		served by the server and used by the client-side library. These include the style
+		sheets, the client-side JavaScript itself, as well as a file called 
+		<code>ui.x-jquery-tmpl</code> which contains the HTML templates for the UI
+		components.
+		</p>
+
+		<p><code>thirdparty</code> contains copies of five external Go Language libraries
+		which are used by Sociability: <a href="">gobson</a> is a library for reading and 
+		writing data in the network format of MongoDB; <a href="">mgo</a> is a driver for
+		the MongoDB for the Go Language; <a href="">authcookie</a> is a library for reading
+		and writing "authenticated cookies", which are used in the user authentication
+		system of Sociability. All three libraries have extensive documentation on their
+		respective sites; <a href="">GoHTTP</a> is the HTTP server infrastructure used by
+		Sociability; and <a href="">GoGauge</a> is a small instrumentation library used
+		internally by GoHTTP.</p>
+
+		<p><code>pkg</code> contains two Go Language libraries that implement all
+		Sociability functionality. The first one, <code>db</code>, takes care of
+		interactions with the database. The second one, <code>sociability</code> takes care
+		of implementing the AJAX server calls.</p>
+
+		<p><code>cmd</code> contains the source code for the sociability server. This is
+		really just wrapper code that reads configuration parameters from the command line
+		that reads configuration parameters from the command line, instantiates a web server
+		that responds to AJAX calls using the <code>sociability</code> Go library and runs
+		the server.</p>
+
+		<h3>The Likes system</h3>
 	</div>
 </body>
 </html>
