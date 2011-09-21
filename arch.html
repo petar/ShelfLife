@@ -80,8 +80,35 @@ thirdparty   Third-party Go Language libraries
 
 		<h3>Database schema</h3>
 
+		<p>For starters, all source files dealing with access to the database are found in the directory
+		<code>src/pkg/db</code>. The main database interface class is in <code>db.go</code>
+		which simply takes care of connecting to MongoDB, using the <a href="">mgo</a>
+		Go driver.
+		</p>
 
-		<h3>The Likes system</h3>
+		<p>What is more interesting is that Sociability uses MongoDB through
+		an abstraction layer that implements a "graph database". In this database,
+		there are two storeable objects: vertices and edges. Additionally, an arbitrary
+		document can be attached to both of these objects.</p>
+
+		<p>In more detail, every vertex is identified by an abstract (user-defined) <em>type</em> and a 
+		<em>unique ID</em>. The available vertex types are declared before
+		database usage ensues (via appropriate functional calls). The vertex's unique ID is
+		allocated at runtime when the vertex is inserted for the first time.
+		</p>
+
+		<p>Every edge has an edge type, a unique ID and two vertices as endpoints. The edge
+		types, similarly to vertex types, are declared before database usage begins. The
+		edge types are user-defined, abstract labels, which additionally specify what are
+		the vertex types of the <em>from</em> and <em>to</em> endpoints of an edge.
+		Like vertices, an arbitrary MongoDB document can be attached to every edge.</p>
+
+		<p>The file <code>src/pkg/db/kpartite.go</code> holds the implementation of the
+		graph database abstraction on top of MongoDB. This file contains a long list of
+		useful functions, like "list neighbors", "delete vertex and its incident edges", etc.
+		</p>
+
+		<h3>A walk through the Likes system</h3>
 	</div>
 </body>
 </html>

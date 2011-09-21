@@ -1,6 +1,6 @@
 * {
-	font: 14px verdana, sans-serif;
-	line-height: 1.58em;
+	font: 19px times, verdana, sans-serif;
+	line-height: 1.40em;
 	color: #333;
 	background: #efe;
 }
@@ -27,12 +27,12 @@ a.anchor, a.anchor:link, a.anchor:visited, a.anchor:hover {
 }
 
 code, pre {
-	font: 15px/23px Courier, monospace;
-	background: #f0f8f8;
+	font: 17px Courier, monospace;
+	background: #fff8f8;
 	padding: 5px;
-	-webkit-border-radius: 3px;
-	-moz-border-radius: 3px;
-	border-radius: 3px;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	border-radius: 5px;
 	//border: 1px dotted #cca;
 	border: 0;
 }
@@ -46,15 +46,18 @@ h1, h2, h3, h4, h5 {
 	color: black;
 }
 
+em { background: none; font-style: italic; }
+b { background: none; font-weight: bold; }
+
 h1 { font-size: 38px; }
-h2 { font-size: 33px; font-style: italic; color: #3c0; }
-h3 { font-size: 22px; font-style: italic; color: #6d0; }
+h2 { font-size: 33px; font-style: italic; color: #c11; }
+h3 { font-size: 22px; font-style: italic; color: #c55; }
 
 div.content {
 	margin: auto auto;
-	width: 700px;
+	width: 800px;
 	margin-bottom: 170px;
-	padding: 10px;
+	padding: 40px;
 	-webkit-border-radius: 7px;
 	-moz-border-radius: 7px;
 	border-radius: 7px;
