@@ -23,8 +23,8 @@
 		communication look like this:</p>
 		<pre>Front-end (Browser JS) <-- TCP --> Server (Go Language) <-- TCP --> MongoDB</pre>
 		
-		<p>The basic idea is that the server is in charge of performing upon request all social
-		functions, like <code>Like(user, object)</code> which when called stores the fact
+		<p>The basic idea is that the server is in charge of performing, upon request, all social
+		functions like <code>Like(user, object)</code> which when called stores the fact
 		that <code>user</code> likes <code>object</code> in the persistent database.
 		These functions are exposed as AJAX calls.
 		</p>
@@ -36,7 +36,7 @@
 		there are higher level functions, which wrap user information in <a
 			href="">backbone.js</a> models and views.</p>
 
-		<p>Every sociability feature, like the Likes System e.g., has some respective code
+		<p>Every sociability feature, like the User Join/Sign In System e.g., has some respective code
 		on the client side and the server side and has a representation in the database.
 		We are going to briefly walk through an example which will sketch out all three
 		parts of a feature and will demonstrate the general structure of the code. But
@@ -108,7 +108,7 @@ thirdparty   Third-party Go Language libraries
 		useful functions, like "list neighbors", "delete vertex and its incident edges", etc.
 		</p>
 
-		<h3>A walk through the Likes system</h3>
+		<h3>A walk through the user system</h3>
 	</div>
 </body>
 </html>
