@@ -30,6 +30,13 @@
 			to the root directory of the source tree (the directory you just cloned from
 			GitHub).
 			</li>
+			<li>Install a few dependency Go packages:</li>
+<pre>
+goinstall github.com/petar/GoHTTP/http
+goinstall github.com/petar/GoHTTP/server
+goinstall github.com/petar/GoHTTP/server/rpc
+goinstall github.com/petar/GoHTTP/server/static
+</pre>
 			<li>Build the server:
 <pre>cd $SHELFLIFE/src
 make && make install</pre></li>

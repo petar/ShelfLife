@@ -1,5 +1,5 @@
 * {
-	font: 19px times, verdana, sans-serif;
+	font: 17px sans-serif, times, verdana, sans-serif;
 	line-height: 1.40em;
 	color: #333;
 	background: #efe;
@@ -12,8 +12,8 @@ a, a:link, a:visited {
 	text-decoration: none; 
 }
 a:hover { 
-	background: #000;
-	color: #fff;
+	color: #388;
+	text-decoration: underline;
 }
 
 a.anchor, a.anchor:link, a.anchor:visited, a.anchor:hover {
@@ -28,7 +28,7 @@ a.anchor, a.anchor:link, a.anchor:visited, a.anchor:hover {
 
 code, pre {
 	font: 17px Courier, monospace;
-	background: #fff8f8;
+	background: #dfffef;
 	padding: 5px;
 	-webkit-border-radius: 5px;
 	-moz-border-radius: 5px;
@@ -41,6 +41,7 @@ pre {
 }
 
 h1, h2, h3, h4, h5 {
+	background: none;
 	font-family: Georgia, sans-serif;
 	font-weight: bold;
 	color: black;
@@ -52,6 +53,7 @@ b { background: none; font-weight: bold; }
 h1 { font-size: 38px; }
 h2 { font-size: 33px; font-style: italic; color: #c11; }
 h3 { font-size: 22px; font-style: italic; color: #c55; }
+h4 { font-size: 18px; font-style: italic; color: #4c5; }
 
 div.content {
 	margin: auto auto;

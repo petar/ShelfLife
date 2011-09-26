@@ -34,7 +34,7 @@
 		The client side JS has two types of functions. There are low-level functions which
 		do nothing more than wrap all AJAX server calls in convenient JS functions. And
 		there are higher level functions, which wrap user information in <a
-			href="">backbone.js</a> models and views.</p>
+			href="http://documentcloud.github.com/backbone/">backbone.js</a> models and views.</p>
 
 		<p>Every sociability feature, like the User Join/Sign In System e.g., has some respective code
 		on the client side and the server side and has a representation in the database.
@@ -58,13 +58,13 @@ thirdparty   Third-party Go Language libraries
 		</p>
 
 		<p><code>thirdparty</code> contains copies of five external Go Language libraries
-		which are used by Sociability: <a href="">gobson</a> is a library for reading and 
-		writing data in the network format of MongoDB; <a href="">mgo</a> is a driver for
-		the MongoDB for the Go Language; <a href="">authcookie</a> is a library for reading
+		which are used by Sociability: <a href="http://labix.org/gobson">gobson</a> is a library for reading and 
+		writing data in the network format of MongoDB; <a href="http://labix.org/mgo">mgo</a> is a driver for
+		the MongoDB for the Go Language; <a href="https://github.com/dchest/authcookie">authcookie</a> is a library for reading
 		and writing "authenticated cookies", which are used in the user authentication
 		system of Sociability. All three libraries have extensive documentation on their
-		respective sites; <a href="">GoHTTP</a> is the HTTP server infrastructure used by
-		Sociability; and <a href="">GoGauge</a> is a small instrumentation library used
+		respective sites; <a href="https://github.com/petar/GoHTTP">GoHTTP</a> is the HTTP server infrastructure used by
+		Sociability; and <a href="https://github.com/petar/GoGauge">GoGauge</a> is a small instrumentation library used
 		internally by GoHTTP.</p>
 
 		<p><code>pkg</code> contains two Go Language libraries that implement all
@@ -82,7 +82,8 @@ thirdparty   Third-party Go Language libraries
 
 		<p>For starters, all source files dealing with access to the database are found in the directory
 		<code>src/pkg/db</code>. The main database interface class is in <code>db.go</code>
-		which simply takes care of connecting to MongoDB, using the <a href="">mgo</a>
+		which simply takes care of connecting to MongoDB, using the <a
+			href="http://labix.org/mgo">mgo</a>
 		Go driver.
 		</p>
 
@@ -105,10 +106,54 @@ thirdparty   Third-party Go Language libraries
 
 		<p>The file <code>src/pkg/db/kpartite.go</code> holds the implementation of the
 		graph database abstraction on top of MongoDB. This file contains a long list of
-		useful functions, like "list neighbors", "delete vertex and its incident edges", etc.
+		useful functions, like "add vertex", "add edge", "list neighbors", 
+		"delete vertex and its incident edges", etc.
 		</p>
 
 		<h3>A walk through the user system</h3>
+		<p>We'll take a quick look at how the user join and sign in system works.
+	       	This should give a good example of the code structure of a typical social
+		functionality or feature.</p>
+
+		<p>Virtually every feature is comprised of code in three locations: database-related
+		code goes in <code>pkg/db</code>, API functions' implementation goes in 
+		<code>pkg/sociability</code> and client-side code goes in
+		<code>static/js/ss.js</code>. For the user system specifically, the database
+		part is in the file <code>pkg/db/user.go</code>, the API part is in
+		<code>pkg/sociability/login.go</code> and the client-side code is represented
+		by the namespace <code>ss.login</code> inside <code>static/js/ss.js</code>.
+
+		<h4>The database part</h4>
+		<p>Note that it is recommended that you familiarize yourself with the <a
+			href="http://labix.org/mgo">mgo</a> MongoDB driver documentation before you start
+		looking into the Sociability database-related code.</p>
+
+		<p>The database part of every feature follows a similar structure. Let's take a look
+		at <code>pkg/db/user.go</code>.</p>
+
+		<p>First you will see the data structure 
+		<code>UserDoc</code> which defines the MongoDB document, containing user
+		information, that will be attached to every vertex that corresponds to a user.
+		</p>
+
+		<p>The <code>initUser</code> function is called in the beginning, before the server
+		starts serving requests. This function prepares the graph database for the
+		user-specific database operation. All it does is to declare a new vertex type called 
+		<code>user</code> and request a MongoDB index on the commonly queried fields 
+		<code>email</code> and <code>login</code>. All Sociability features will have a
+		similar database initialization function that generally do two things:
+		declare vertex and edge types and install MongoDB indicies (or uniqueness rules).
+		</p>
+
+		<p>The rest of the functions in <code>pkg/db/user.go</code> are well-documented and
+		pretty self-explanatory. Take a look at <code>AddUser</code>, which adds a new
+		user to the database, and <code>FindUserByEmail</code>, which looks up a user record
+		by email.</p>
+
+		<h4>The API part</h4>
+		<p>The HTTP API infrastructure
+
+		<h4>The client-side part</h4>
 	</div>
 </body>
 </html>
