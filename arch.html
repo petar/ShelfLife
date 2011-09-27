@@ -151,7 +151,36 @@ thirdparty   Third-party Go Language libraries
 		by email.</p>
 
 		<h4>The API part</h4>
-		<p>The HTTP API infrastructure
+		<p>Sociability uses GoHTTP's infrastructure for building HTTP (AJAX) APIs. The way
+		this works is quite simple. The GoHTTP server takes a Go struct and its methods and
+		exports all "public" methods (those whose name starts with an uppercase letter) as
+		AJAX API calls. The methods that are exported need to have a specific argument
+		signature. For example,
+<pre>
+SignInLogin(args *rpc.Args, r *rpc.Ret) (err os.Error)
+</pre>
+		<p>The first argument <code>args</code> encapsulates all input information provided
+		to the AJAX call. This includes URL arguments, HTTP body arguments (for POST
+		requests) and cookies in the HTTP request. All of these can be accessed by the
+		methods of the <code>rpc.Args</code>, which is found in the 
+		<code>github.com/petar/GoHTTP/server/rpc</code> package.</p>
+
+		<p>The API class for Sociability is defined in
+		<code>src/pkg/sociability/api.go</code>, but most of its methods can be found in
+		other source files that are feature specific. This why find all API calls of the
+		user system in <code>src/pkg/sociability/login.go</code>.</p>
+
+		<p>The method <code>SignInLogin</code> (found in <code>login.go</code>), for example,
+		is a great demonstration of what a typical API call implementation looks like. This
+		method is also well-documented in the source file.</p>
+
+		<p>The method starts with calls to <code>args.QueryString</code> which extract the
+		various arguments passed as part of the HTTP request URL. It then invokes the
+		method <code>FindUserByLogin</code>, which is implemented in the database part of 
+		the user system, which fetches the user structure for the request username.
+		The method then concludes by setting some user authentication cookies, using
+		a call to <code>r.AddSetCookie</code>, and adding some result data in the JSON body
+		of the HTTP response via a call to <code>r.SetInt</code>.
 
 		<h4>The client-side part</h4>
 	</div>
