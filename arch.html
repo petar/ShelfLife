@@ -183,6 +183,27 @@ SignInLogin(args *rpc.Args, r *rpc.Ret) (err os.Error)
 		of the HTTP response via a call to <code>r.SetInt</code>.
 
 		<h4>The client-side part</h4>
+		<p>The client-side is entirely contained in the file
+		<code>src/static/js/ss.js</code>. This is effectively a JavaScript library to be
+		included in Sociability-enabled web-pages. The library declares a few different
+		namespaces like <code>ss.util</code>, <code>ss.login</code>, <code>ss.social</code>,
+		etc., where each namespace contains functions or objects of related nature.</p>
+
+		<p>Two of the namespaces, namely <code>ss.login</code> and <code>ss.social</code>,
+		provide functions that correspond to every HTTP API call (supported by the server) 
+		by wrapping the details of AJAX calling using jQuery. In a sense, these namespaces
+		provide the lowest-level access to Sociability on your web-page.</p>
+
+		<p>The function-oriented interface to Sociability is generally not convenient for
+		web app developers. Consider for example the message thread of a social object. The
+		thread changes over time and if a developer were to keep a fresh view of the thread
+		on screen, they would have to perform polling using the respective AJAX calls to the
+		sociability messaging system. This is awkward.</p>
+
+		<p>In order to avoid the awkwardness of polling semantics, Sociability builds a
+		higher-level client-side interface, based on <a
+			href="http://documentcloud.github.com/backbone/">backbone.js</a> models.
+		It is
 	</div>
 </body>
 </html>
