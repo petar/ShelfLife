@@ -203,7 +203,39 @@ SignInLogin(args *rpc.Args, r *rpc.Ret) (err os.Error)
 		<p>In order to avoid the awkwardness of polling semantics, Sociability builds a
 		higher-level client-side interface, based on <a
 			href="http://documentcloud.github.com/backbone/">backbone.js</a> models.
-		It is
+		We recommend that you familiarize yourself with the "backbone" design principles,
+		which are documented in the <a href="http://documentcloud.github.com/backbone/">backbone.js documentation</a>.
+		In short, a model is a client-side object that takes care of maintaining a fresh
+		copy of the state of a Sociability object (like a message thread e.g.) and supports
+		event-driven notification (inside JavaScript) upon changes in the underlying object.
+		Similarly, it provides functions for changing the underlying object and it takes
+		care of communicating these changes to the server transparently and automatically.
+		</p>
+
+		<p>Currently Sociability provides models for message threads, via
+		<code>ss.model.MsgThread</code>, and for the currently logged in user and their
+		state, via <code>ss.model.User</code>.</p>
+
+		<p>The final, and highest-level, layer of the client-side comprises of
+		various UI components that can be inserted directly into the webpage and,
+		essentially, be used out-of-the-box. For these UI components, Sociability uses
+		the backbone.js principles of event-driven UI design. Each UI component is
+		an instance of a backbone <code>View</code>. Every component knows how to draw
+		itself, how to interact with the user and it uses one of Sociability's models to read or write the data that
+		pertains to this UI component. For example, the <code>ss.view.MsgThread</code>
+		UI component uses a <code>ss.model.MsgThread</code> model to fetch and store the
+		changes to a message thread.</p>
+
+		<p>All UI components are defined in the namespace <code>ss.view</code>. Some
+		examples of currently available UI components are: <code>UserBar</code>, for
+		displaying a top-of-the-page user login and join toolbar; <code>MsgThread</code>,
+		for displaying the message thread pertaining to an object;
+		<code>MustSignInBox</code>, for displaying a warning that the user must sign in, and
+		so forth.</p>
+
+		<p>We have also included some commonly performed tasks in the form of convenience
+		functions that can be found in the namespaces <code>ss.misc</code> and
+		<code>ss.ui</code>.</p>
 	</div>
 </body>
 </html>
